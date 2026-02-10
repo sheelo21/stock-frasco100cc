@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Minus, Save } from "lucide-react";
-import type { Product } from "@/lib/inventory-store";
+import type { Product } from "@/hooks/use-inventory";
 
 interface StockControlsProps {
   product: Product;
-  onAdd: () => void;
-  onRemove: () => void;
-  onSetStock: (value: number) => void;
+  onAdd: () => void | Promise<void>;
+  onRemove: () => void | Promise<void>;
+  onSetStock: (value: number) => void | Promise<void>;
 }
 
 export default function StockControls({
@@ -30,12 +30,11 @@ export default function StockControls({
 
   return (
     <div className="space-y-4">
-      {/* Quick buttons */}
       <div className="grid grid-cols-2 gap-3">
         <Button
           size="lg"
           className="h-16 text-lg font-bold bg-success hover:bg-success/90 text-success-foreground"
-          onClick={onAdd}
+          onClick={() => onAdd()}
         >
           <Plus className="mr-2 h-6 w-6" />
           入庫 +1
@@ -44,7 +43,7 @@ export default function StockControls({
           size="lg"
           variant="destructive"
           className="h-16 text-lg font-bold"
-          onClick={onRemove}
+          onClick={() => onRemove()}
           disabled={product.stock <= 0}
         >
           <Minus className="mr-2 h-6 w-6" />
@@ -52,7 +51,6 @@ export default function StockControls({
         </Button>
       </div>
 
-      {/* Manual input */}
       {!isEditing ? (
         <Button
           variant="outline"
@@ -74,11 +72,7 @@ export default function StockControls({
             className="text-center text-lg font-bold h-12"
             autoFocus
           />
-          <Button
-            size="lg"
-            className="h-12 px-6"
-            onClick={handleSave}
-          >
+          <Button size="lg" className="h-12 px-6" onClick={handleSave}>
             <Save className="mr-2 h-5 w-5" />
             保存
           </Button>

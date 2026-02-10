@@ -8,10 +8,18 @@ import { toast } from "sonner";
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { findById, addStock, removeStock, setStockValue, products } =
+  const { products, addStock, removeStock, setStockValue, loading } =
     useInventory();
 
   const product = products.find((p) => p.id === id);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-16 pb-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -36,7 +44,6 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      {/* Back button */}
       <Button
         variant="ghost"
         size="sm"
@@ -47,7 +54,6 @@ export default function ProductPage() {
         戻る
       </Button>
 
-      {/* Product card */}
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
         <div className="flex items-start gap-4">
           <div className="h-20 w-20 flex-shrink-0 rounded-lg bg-muted flex items-center justify-center">
@@ -64,7 +70,6 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* Stock display */}
         <div className="mt-5 flex items-end justify-between rounded-lg bg-muted p-4">
           <div>
             <p className="text-xs text-muted-foreground">現在の在庫数</p>
@@ -90,25 +95,24 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* Stock controls */}
       <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
         <h3 className="mb-4 text-sm font-semibold text-muted-foreground">
           在庫操作
         </h3>
         <StockControls
           product={product}
-          onAdd={() => {
-            addStock(product.id);
-            toast.success("入庫しました (+1)");
+          onAdd={async () => {
+            const ok = await addStock(product.id);
+            if (ok) toast.success("入庫しました (+1)");
           }}
-          onRemove={() => {
-            const ok = removeStock(product.id);
+          onRemove={async () => {
+            const ok = await removeStock(product.id);
             if (ok) toast.success("出庫しました (-1)");
             else toast.error("在庫が不足しています");
           }}
-          onSetStock={(val) => {
-            setStockValue(product.id, val);
-            toast.success(`在庫を ${val} に更新しました`);
+          onSetStock={async (val) => {
+            const ok = await setStockValue(product.id, val);
+            if (ok) toast.success(`在庫を ${val} に更新しました`);
           }}
         />
       </div>
