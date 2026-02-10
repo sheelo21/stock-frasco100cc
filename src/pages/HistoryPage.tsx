@@ -1,7 +1,8 @@
 import { useInventory } from "@/hooks/use-inventory";
 import { ArrowUp, ArrowDown, Edit } from "lucide-react";
 
-function formatTime(date: Date) {
+function formatTime(dateStr: string) {
+  const date = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const mins = Math.floor(diff / 60000);
@@ -18,7 +19,7 @@ function formatTime(date: Date) {
 }
 
 export default function HistoryPage() {
-  const { logs } = useInventory();
+  const { logs, loading } = useInventory();
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -29,7 +30,11 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      {logs.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      ) : logs.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
           <p className="text-muted-foreground">まだ履歴がありません</p>
         </div>
@@ -59,10 +64,10 @@ export default function HistoryPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">
-                  {log.productName}
+                  {log.product_name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {formatTime(log.timestamp)}
+                  {log.display_name} · {formatTime(log.created_at)}
                 </p>
               </div>
               <div className="text-right">
@@ -78,7 +83,7 @@ export default function HistoryPage() {
                   {log.change > 0 ? `+${log.change}` : log.change}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  残: {log.newStock}
+                  残: {log.new_stock}
                 </p>
               </div>
             </div>

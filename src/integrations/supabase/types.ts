@@ -14,7 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          barcode: string
+          category: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          barcode: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stock_logs: {
+        Row: {
+          change: number
+          created_at: string
+          id: string
+          new_stock: number
+          product_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          change: number
+          created_at?: string
+          id?: string
+          new_stock: number
+          product_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          change?: number
+          created_at?: string
+          id?: string
+          new_stock?: number
+          product_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
