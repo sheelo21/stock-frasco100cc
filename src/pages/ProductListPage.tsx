@@ -1,11 +1,32 @@
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, Plus } from "lucide-react";
+import { Package, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useInventory } from "@/hooks/use-inventory";
 
 export default function ProductListPage() {
   const { products, loading } = useInventory();
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const categories = useMemo(
+    () => [...new Set(products.map((p) => p.category).filter(Boolean))] as string[],
+    [products]
+  );
+
+  const filtered = useMemo(() => {
+    let list = products;
+    if (selectedCategory) list = list.filter((p) => p.category === selectedCategory);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (p) => p.name.toLowerCase().includes(q) || p.barcode.includes(q)
+      );
+    }
+    return list;
+  }, [products, selectedCategory, search]);
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -13,7 +34,7 @@ export default function ProductListPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            全 {products.length} 商品
+            {filtered.length} / {products.length} 商品
           </p>
         </div>
         <Button size="sm" onClick={() => navigate("/products/add")}>
@@ -22,13 +43,57 @@ export default function ProductListPage() {
         </Button>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="商品名・JANコードで検索"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Category filter */}
+      {categories.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+              !selectedCategory
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-muted-foreground border-border"
+            }`}
+          >
+            すべて
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                selectedCategory === cat
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
+      ) : filtered.length === 0 ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">
+          該当する商品がありません
+        </p>
       ) : (
         <div className="space-y-2">
-          {products.map((product) => {
+          {filtered.map((product) => {
             const stockStatus =
               product.stock <= 5
                 ? "low"
