@@ -23,6 +23,10 @@ export default function ScanPage() {
       } else {
         toast.error("商品が見つかりませんでした", {
           description: `JANコード: ${barcode}`,
+          action: {
+            label: "新規登録",
+            onClick: () => navigate(`/products/add?barcode=${encodeURIComponent(barcode)}`),
+          },
         });
       }
     },
