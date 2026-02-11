@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { Package } from "lucide-react";
+import { Package, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useInventory } from "@/hooks/use-inventory";
 
 export default function ProductListPage() {
@@ -8,11 +9,17 @@ export default function ProductListPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          全 {products.length} 商品
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            全 {products.length} 商品
+          </p>
+        </div>
+        <Button size="sm" onClick={() => navigate("/products/add")}>
+          <Plus className="h-4 w-4 mr-1" />
+          追加
+        </Button>
       </div>
 
       {loading ? (
