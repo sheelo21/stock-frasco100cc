@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { Scan, Package, ClipboardList } from "lucide-react";
+import { Scan, Package, ClipboardList, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: Scan, label: "スキャン" },
   { to: "/products", icon: Package, label: "在庫一覧" },
   { to: "/history", icon: ClipboardList, label: "履歴" },
+  { to: "/settings", icon: Settings, label: "設定" },
 ];
 
 export default function BottomNav() {

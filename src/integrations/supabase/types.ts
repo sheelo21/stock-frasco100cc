@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      dropdown_options: {
+        Row: {
+          created_at: string
+          id: string
+          sort_order: number
+          type: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sort_order?: number
+          type: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sort_order?: number
+          type?: string
+          value?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string
