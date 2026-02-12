@@ -9,6 +9,16 @@ export interface Product {
   stock: number;
   image_url: string | null;
   category: string | null;
+  product_number: string | null;
+  model_number: string | null;
+  catalog_page: string | null;
+  parent_category: string | null;
+  sub_category: string | null;
+  color: string | null;
+  price_with_tax: number | null;
+  price_without_tax: number | null;
+  size: string | null;
+  is_new: boolean;
 }
 
 export interface StockLog {
