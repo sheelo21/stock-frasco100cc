@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -11,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useInventory } from "@/hooks/use-inventory";
 
 export default function ProductListPage() {
@@ -31,6 +32,23 @@ export default function ProductListPage() {
     );
   }, [products, search]);
 
+  // Auto-compute model_number and price_without_tax for display
+  const displayProducts = useMemo(
+    () =>
+      filtered.map((p) => ({
+        ...p,
+        computed_model_number:
+          p.product_number
+            ? `${p.product_number}${p.size ? `-${p.size}` : ""}`
+            : "—",
+        computed_price_without_tax:
+          p.price_with_tax != null
+            ? Math.round(p.price_with_tax / 1.1)
+            : null,
+      })),
+    [filtered]
+  );
+
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
       <div className="flex items-center justify-between">
@@ -46,7 +64,6 @@ export default function ProductListPage() {
         </Button>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -66,26 +83,26 @@ export default function ProductListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <div className="rounded-lg border border-border overflow-hidden">
+        <div className="rounded-lg border border-border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="whitespace-nowrap">商品番号</TableHead>
-                <TableHead className="whitespace-nowrap">商品型番</TableHead>
-                <TableHead className="whitespace-nowrap">商品名</TableHead>
-                <TableHead className="whitespace-nowrap">カタログページ</TableHead>
-                <TableHead className="whitespace-nowrap">親カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap">子カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap">カラー</TableHead>
-                <TableHead className="whitespace-nowrap">JANコード</TableHead>
-                <TableHead className="whitespace-nowrap text-right">上代(税込)</TableHead>
-                <TableHead className="whitespace-nowrap text-right">上代(税抜)</TableHead>
-                <TableHead className="whitespace-nowrap">サイズ</TableHead>
-                <TableHead className="whitespace-nowrap">新商品</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px]">商品番号</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[120px]">商品名</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px]">カタログページ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px]">親カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px]">子カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px]">カラー</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[120px]">JANコード</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px] text-right">上代(税込)</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px] text-right">上代(税抜)</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px]">サイズ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((product) => (
+              {displayProducts.map((product) => (
                 <TableRow
                   key={product.id}
                   className="cursor-pointer hover:bg-muted/50"
@@ -94,8 +111,8 @@ export default function ProductListPage() {
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.product_number || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {product.model_number || "—"}
+                  <TableCell className="whitespace-nowrap text-sm font-mono">
+                    {product.computed_model_number}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     {product.name}
@@ -121,19 +138,15 @@ export default function ProductListPage() {
                       : "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm text-right">
-                    {product.price_without_tax != null
-                      ? `¥${product.price_without_tax.toLocaleString()}`
+                    {product.computed_price_without_tax != null
+                      ? `¥${product.computed_price_without_tax.toLocaleString()}`
                       : "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.size || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {product.is_new ? (
-                      <Badge variant="default" className="text-xs">NEW</Badge>
-                    ) : (
-                      "—"
-                    )}
+                  <TableCell className="text-center">
+                    <Checkbox checked={product.is_new} disabled className="pointer-events-none" />
                   </TableCell>
                 </TableRow>
               ))}

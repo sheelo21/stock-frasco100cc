@@ -11,6 +11,7 @@ import ProductListPage from "@/pages/ProductListPage";
 import HistoryPage from "@/pages/HistoryPage";
 import AuthPage from "@/pages/AuthPage";
 import AddProductPage from "@/pages/AddProductPage";
+import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,13 +32,14 @@ function ProtectedRoutes() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-lg bg-background">
+    <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
         <Route path="/" element={<ScanPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/add" element={<AddProductPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNav />
