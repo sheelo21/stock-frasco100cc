@@ -3,7 +3,7 @@ import { Scan, Package, ClipboardList, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: Scan, label: "スキャン" },
-  { to: "/products", icon: Package, label: "在庫一覧" },
+  { to: "/products", icon: Package, label: "商品一覧" },
   { to: "/history", icon: ClipboardList, label: "履歴" },
   { to: "/settings", icon: Settings, label: "設定" },
 ];

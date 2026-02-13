@@ -53,7 +53,7 @@ export default function ProductListPage() {
     <div className="flex flex-col gap-4 p-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
+          <h1 className="text-2xl font-bold text-foreground">商品一覧</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {filtered.length} / {products.length} 商品
           </p>
