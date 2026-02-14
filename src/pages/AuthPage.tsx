@@ -1,20 +1,35 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Package, LogIn, UserPlus } from "lucide-react";
 
 export default function AuthPage() {
+  const { user, loading: authLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       if (isLogin) {
@@ -36,14 +51,13 @@ export default function AuthPage() {
     } catch (err: any) {
       toast.error(err.message || "エラーが発生しました");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background">
       <div className="w-full max-w-sm space-y-8">
-        {/* Logo */}
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
             <Package className="h-8 w-8 text-primary-foreground" />
@@ -98,7 +112,7 @@ export default function AuthPage() {
           <Button
             type="submit"
             className="h-14 w-full text-base font-bold"
-            disabled={loading}
+            disabled={submitting}
           >
             {isLogin ? (
               <>
