@@ -13,6 +13,7 @@ import HistoryPage from "@/pages/HistoryPage";
 import AuthPage from "@/pages/AuthPage";
 import AddProductPage from "@/pages/AddProductPage";
 import SettingsPage from "@/pages/SettingsPage";
+import SettingsDetailPage from "@/pages/SettingsDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ function ProtectedRoutes() {
         <Route path="/scan" element={<ScanPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings/:type" element={<SettingsDetailPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNav />
