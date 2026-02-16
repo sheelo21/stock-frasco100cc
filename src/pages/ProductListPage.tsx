@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Download, Filter, ArrowUpDown, X } from "lucide-react";
+import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -294,9 +294,11 @@ export default function ProductListPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
+                <TableHead className="whitespace-nowrap w-[50px]"></TableHead>
                 <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px]" />
                 <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
+                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-right" />
                 <TableHead className="whitespace-nowrap min-w-[80px]">カタログページ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px]">親カテゴリ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px]">子カテゴリ</TableHead>
@@ -312,9 +314,18 @@ export default function ProductListPage() {
               {displayProducts.map((product) => (
                 <TableRow
                   key={product.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/product/${product.id}`)}
+                  className="hover:bg-muted/50"
                 >
+                  <TableCell className="whitespace-nowrap">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.product_number || "—"}
                   </TableCell>
@@ -323,6 +334,9 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     {product.name}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-right">
+                    {product.stock}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.catalog_page || "—"}

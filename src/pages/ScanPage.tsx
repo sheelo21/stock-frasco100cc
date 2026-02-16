@@ -1,25 +1,46 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Scan, Keyboard } from "lucide-react";
+import { Scan, Keyboard, PackagePlus, PackageMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import ScannerView from "@/components/ScannerView";
 import { useInventory } from "@/hooks/use-inventory";
 import { toast } from "sonner";
 
+type ScanMode = "in" | "out";
+
 export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState("");
+  const [mode, setMode] = useState<ScanMode>("in");
   const navigate = useNavigate();
-  const { findByBarcode } = useInventory();
+  const { findByBarcode, addStock, removeStock } = useInventory();
 
   const handleScan = useCallback(
-    (barcode: string) => {
+    async (barcode: string) => {
       setScanning(false);
       const product = findByBarcode(barcode);
       if (product) {
-        toast.success(`${product.name} を検出しました`);
-        navigate(`/product/${product.id}`);
+        if (mode === "in") {
+          const ok = await addStock(product.id);
+          if (ok) {
+            toast.success(`${product.name} を入庫しました（在庫: ${product.stock + 1}）`);
+          } else {
+            toast.error("入庫に失敗しました");
+          }
+        } else {
+          if (product.stock <= 0) {
+            toast.error(`${product.name} の在庫が0です`);
+            return;
+          }
+          const ok = await removeStock(product.id);
+          if (ok) {
+            toast.success(`${product.name} を出庫しました（在庫: ${product.stock - 1}）`);
+          } else {
+            toast.error("出庫に失敗しました");
+          }
+        }
       } else {
         toast.error("商品が見つかりませんでした", {
           description: `JANコード: ${barcode}`,
@@ -30,7 +51,7 @@ export default function ScanPage() {
         });
       }
     },
-    [findByBarcode, navigate]
+    [findByBarcode, navigate, mode, addStock, removeStock]
   );
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -47,8 +68,39 @@ export default function ScanPage() {
       <div className="text-center">
         <h1 className="text-2xl font-bold text-foreground">在庫スキャン</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          バーコードをスキャンして在庫を確認
+          バーコードをスキャンして在庫を操作
         </p>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant={mode === "in" ? "default" : "outline"}
+          size="lg"
+          className="h-14 text-base font-bold"
+          onClick={() => setMode("in")}
+        >
+          <PackagePlus className="mr-2 h-5 w-5" />
+          入庫モード
+        </Button>
+        <Button
+          variant={mode === "out" ? "destructive" : "outline"}
+          size="lg"
+          className="h-14 text-base font-bold"
+          onClick={() => setMode("out")}
+        >
+          <PackageMinus className="mr-2 h-5 w-5" />
+          出庫モード
+        </Button>
+      </div>
+
+      {/* Current mode indicator */}
+      <div className={`rounded-lg p-3 text-center text-sm font-medium ${
+        mode === "in"
+          ? "bg-primary/10 text-primary border border-primary/20"
+          : "bg-destructive/10 text-destructive border border-destructive/20"
+      }`}>
+        {mode === "in" ? "📦 スキャンした商品を入庫します" : "📤 スキャンした商品を出庫します"}
       </div>
 
       {/* Scanner toggle */}
@@ -82,7 +134,7 @@ export default function ScanPage() {
           />
         </div>
         <Button type="submit" size="lg" className="h-12 px-6">
-          検索
+          {mode === "in" ? "入庫" : "出庫"}
         </Button>
       </form>
 
