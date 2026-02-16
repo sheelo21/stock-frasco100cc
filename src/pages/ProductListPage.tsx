@@ -172,9 +172,6 @@ export default function ProductListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">商品一覧</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {filtered.length} / {products.length} 商品
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <CsvImportDialog onComplete={refresh} />
@@ -301,7 +298,7 @@ export default function ProductListPage() {
           該当する商品がありません
         </p>
       ) : (
-      <ScrollSyncedTable minWidth={1800} maxHeight="calc(100vh - 260px)">
+      <ScrollSyncedTable maxHeight="calc(100vh - 220px)">
           <Table className="text-xs" style={{ minWidth: 1800 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">

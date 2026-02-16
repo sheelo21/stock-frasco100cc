@@ -145,9 +145,6 @@ export default function InventoryListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {filtered.length} / {products.length} 商品
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -276,7 +273,7 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <ScrollSyncedTable minWidth={1200} maxHeight="calc(100vh - 260px)">
+        <ScrollSyncedTable maxHeight="calc(100vh - 220px)">
           <Table className="text-xs" style={{ minWidth: 1200 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">
