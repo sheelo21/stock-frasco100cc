@@ -154,12 +154,6 @@ export default function ProductPage() {
     );
   }
 
-  const stockStatus =
-    product.stock <= 5
-      ? "low"
-      : product.stock <= 20
-      ? "medium"
-      : "good";
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24 max-w-2xl mx-auto">
@@ -249,28 +243,11 @@ export default function ProductPage() {
             </div>
           </div>
 
-          <div className="mt-5 flex items-end justify-between rounded-lg bg-muted p-4">
-            <div>
-              <p className="text-xs text-muted-foreground">現在の在庫数</p>
-              <p className="text-4xl font-bold text-foreground">
-                {product.stock}
-              </p>
-            </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold ${
-                stockStatus === "low"
-                  ? "bg-destructive/10 text-destructive"
-                  : stockStatus === "medium"
-                  ? "bg-warning/10 text-warning"
-                  : "bg-success/10 text-success"
-              }`}
-            >
-              {stockStatus === "low"
-                ? "在庫少"
-                : stockStatus === "medium"
-                ? "注意"
-                : "十分"}
-            </span>
+          <div className="mt-5 rounded-lg bg-muted p-4">
+            <p className="text-xs text-muted-foreground">現在の在庫数</p>
+            <p className="text-4xl font-bold text-foreground">
+              {product.stock}
+            </p>
           </div>
         </div>
       )}
