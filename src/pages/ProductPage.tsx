@@ -258,13 +258,13 @@ export default function ProductPage() {
         </h3>
         <StockControls
           product={product}
-          onAdd={async () => {
-            const ok = await addStock(product.id);
-            if (ok) toast.success("入庫しました (+1)");
+          onAdd={async (qty) => {
+            const ok = await addStock(product.id, qty);
+            if (ok) toast.success(`入庫しました (+${qty})`);
           }}
-          onRemove={async () => {
-            const ok = await removeStock(product.id);
-            if (ok) toast.success("出庫しました (-1)");
+          onRemove={async (qty) => {
+            const ok = await removeStock(product.id, qty);
+            if (ok) toast.success(`出庫しました (-${qty})`);
             else toast.error("在庫が不足しています");
           }}
           onSetStock={async (val) => {

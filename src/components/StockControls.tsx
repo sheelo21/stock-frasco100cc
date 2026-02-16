@@ -6,8 +6,8 @@ import type { Product } from "@/hooks/use-inventory";
 
 interface StockControlsProps {
   product: Product;
-  onAdd: () => void | Promise<void>;
-  onRemove: () => void | Promise<void>;
+  onAdd: (quantity: number) => void | Promise<void>;
+  onRemove: (quantity: number) => void | Promise<void>;
   onSetStock: (value: number) => void | Promise<void>;
 }
 
@@ -17,6 +17,7 @@ export default function StockControls({
   onRemove,
   onSetStock,
 }: StockControlsProps) {
+  const [quantity, setQuantity] = useState(1);
   const [manualValue, setManualValue] = useState(product.stock.toString());
   const [isEditing, setIsEditing] = useState(false);
 
@@ -30,24 +31,58 @@ export default function StockControls({
 
   return (
     <div className="space-y-4">
+      {/* Quantity selector */}
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-sm font-medium text-muted-foreground">数量:</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            disabled={quantity <= 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <Input
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(e) => {
+              const v = parseInt(e.target.value);
+              if (!isNaN(v) && v >= 1) setQuantity(v);
+            }}
+            className="h-10 w-20 text-center text-lg font-bold"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setQuantity((q) => q + 1)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <Button
           size="lg"
           className="h-16 text-lg font-bold bg-success hover:bg-success/90 text-success-foreground"
-          onClick={() => onAdd()}
+          onClick={() => onAdd(quantity)}
         >
           <Plus className="mr-2 h-6 w-6" />
-          入庫 +1
+          入庫 +{quantity}
         </Button>
         <Button
           size="lg"
           variant="destructive"
           className="h-16 text-lg font-bold"
-          onClick={() => onRemove()}
-          disabled={product.stock <= 0}
+          onClick={() => onRemove(quantity)}
+          disabled={product.stock < quantity}
         >
           <Minus className="mr-2 h-6 w-6" />
-          出庫 -1
+          出庫 -{quantity}
         </Button>
       </div>
 
@@ -60,7 +95,7 @@ export default function StockControls({
             setIsEditing(true);
           }}
         >
-          数量を直接入力
+          現在庫を直接入力
         </Button>
       ) : (
         <div className="flex gap-2">
