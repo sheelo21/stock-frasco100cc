@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Scan, Keyboard, PackagePlus, PackageMinus } from "lucide-react";
+import { Scan, Keyboard, PackagePlus, PackageMinus, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ export default function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState("");
   const [mode, setMode] = useState<ScanMode>("in");
+  const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
   const { findByBarcode, addStock, removeStock } = useInventory();
 
@@ -23,20 +24,20 @@ export default function ScanPage() {
       const product = findByBarcode(barcode);
       if (product) {
         if (mode === "in") {
-          const ok = await addStock(product.id);
+          const ok = await addStock(product.id, quantity);
           if (ok) {
-            toast.success(`${product.name} を入庫しました（在庫: ${product.stock + 1}）`);
+            toast.success(`${product.name} を${quantity}個入庫しました（在庫: ${product.stock + quantity}）`);
           } else {
             toast.error("入庫に失敗しました");
           }
         } else {
-          if (product.stock <= 0) {
-            toast.error(`${product.name} の在庫が0です`);
+          if (product.stock < quantity) {
+            toast.error(`${product.name} の在庫が足りません（現在: ${product.stock}）`);
             return;
           }
-          const ok = await removeStock(product.id);
+          const ok = await removeStock(product.id, quantity);
           if (ok) {
-            toast.success(`${product.name} を出庫しました（在庫: ${product.stock - 1}）`);
+            toast.success(`${product.name} を${quantity}個出庫しました（在庫: ${product.stock - quantity}）`);
           } else {
             toast.error("出庫に失敗しました");
           }
@@ -94,13 +95,47 @@ export default function ScanPage() {
         </Button>
       </div>
 
+      {/* Quantity selector */}
+      <div className="flex items-center justify-center gap-4">
+        <span className="text-sm font-medium text-muted-foreground">数量:</span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            disabled={quantity <= 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <Input
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(e) => {
+              const v = parseInt(e.target.value);
+              if (!isNaN(v) && v >= 1) setQuantity(v);
+            }}
+            className="h-10 w-20 text-center text-lg font-bold"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10"
+            onClick={() => setQuantity((q) => q + 1)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Current mode indicator */}
       <div className={`rounded-lg p-3 text-center text-sm font-medium ${
         mode === "in"
           ? "bg-primary/10 text-primary border border-primary/20"
           : "bg-destructive/10 text-destructive border border-destructive/20"
       }`}>
-        {mode === "in" ? "📦 スキャンした商品を入庫します" : "📤 スキャンした商品を出庫します"}
+        {mode === "in" ? `📦 スキャンした商品を${quantity}個入庫します` : `📤 スキャンした商品を${quantity}個出庫します`}
       </div>
 
       {/* Scanner toggle */}
