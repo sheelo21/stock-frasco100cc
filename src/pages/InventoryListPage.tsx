@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
 import { useInventory } from "@/hooks/use-inventory";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
+import ScrollSyncedTable from "@/components/ScrollSyncedTable";
 
 type SortKey = "name" | "product_number" | "stock" | "barcode";
 type SortDir = "asc" | "desc";
@@ -275,29 +276,7 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <div className="rounded-lg border border-border flex flex-col" style={{ maxHeight: 'calc(100vh - 260px)' }}>
-          {/* Top scrollbar - synced with table scroll */}
-          <div
-            className="overflow-x-auto shrink-0 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
-            style={{ overflowX: 'scroll' }}
-            onScroll={(e) => {
-              const target = e.currentTarget;
-              const body = target.nextElementSibling as HTMLElement;
-              if (body) body.scrollLeft = target.scrollLeft;
-            }}
-          >
-            <div style={{ height: 1, minWidth: 1200 }} />
-          </div>
-          {/* Table body with synced scroll */}
-          <div
-            className="overflow-auto flex-1 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
-            style={{ overflowX: 'scroll' }}
-            onScroll={(e) => {
-              const target = e.currentTarget;
-              const topBar = target.previousElementSibling as HTMLElement;
-              if (topBar) topBar.scrollLeft = target.scrollLeft;
-            }}
-          >
+        <ScrollSyncedTable minWidth={1200} maxHeight="calc(100vh - 260px)">
           <Table className="text-xs" style={{ minWidth: 1200 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">
@@ -352,9 +331,8 @@ export default function InventoryListPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
-          </div>
-        </div>
+           </Table>
+          </ScrollSyncedTable>
       )}
     </div>
   );
