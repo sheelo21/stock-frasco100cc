@@ -109,6 +109,40 @@ export interface ImportResult {
   errors: { row: number; message: string }[];
 }
 
+async function registerMissingOptions(
+  newOptions: Record<string, Set<string>>
+) {
+  // Fetch all existing options
+  const { data: existing } = await supabase
+    .from("dropdown_options")
+    .select("type, value");
+
+  const existingSet = new Set(
+    (existing || []).map((o) => `${o.type}::${o.value}`)
+  );
+
+  const toInsert: { type: string; value: string; sort_order: number }[] = [];
+
+  // Count existing per type for sort_order
+  const maxOrder: Record<string, number> = {};
+  for (const o of existing || []) {
+    maxOrder[o.type] = Math.max(maxOrder[o.type] ?? -1, 0);
+  }
+
+  for (const [type, values] of Object.entries(newOptions)) {
+    let order = (maxOrder[type] ?? -1) + 1;
+    for (const value of values) {
+      if (!existingSet.has(`${type}::${value}`)) {
+        toInsert.push({ type, value, sort_order: order++ });
+      }
+    }
+  }
+
+  if (toInsert.length > 0) {
+    await supabase.from("dropdown_options").insert(toInsert);
+  }
+}
+
 export async function importProductsFromCSV(
   csvText: string
 ): Promise<ImportResult> {
@@ -120,6 +154,25 @@ export async function importProductsFromCSV(
   // Skip header
   const dataLines = lines.slice(1);
   const result: ImportResult = { success: 0, errors: [] };
+
+  // Collect unique dropdown values from CSV
+  const newOptions: Record<string, Set<string>> = {
+    parent_category: new Set<string>(),
+    sub_category: new Set<string>(),
+    color: new Set<string>(),
+    size: new Set<string>(),
+  };
+
+  for (const line of dataLines) {
+    const fields = parseCSVLine(line);
+    if (fields[3]?.trim()) newOptions.parent_category.add(fields[3].trim());
+    if (fields[4]?.trim()) newOptions.sub_category.add(fields[4].trim());
+    if (fields[5]?.trim()) newOptions.color.add(fields[5].trim());
+    if (fields[8]?.trim()) newOptions.size.add(fields[8].trim());
+  }
+
+  // Register missing dropdown options
+  await registerMissingOptions(newOptions);
 
   const batchSize = 50;
   for (let i = 0; i < dataLines.length; i += batchSize) {
