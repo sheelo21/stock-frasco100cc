@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,17 +17,6 @@ import { useInventory } from "@/hooks/use-inventory";
 import { useDropdownOptions, type OptionType } from "@/hooks/use-dropdown-options";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 function DropdownField({
   label,
@@ -143,17 +132,6 @@ export default function ProductPage() {
     await refresh();
   };
 
-  const handleDelete = async () => {
-    if (!product) return;
-    const { error } = await supabase.from("products").delete().eq("id", product.id);
-    if (error) {
-      toast.error("削除に失敗しました");
-      return;
-    }
-    toast.success(`${product.name} を削除しました`);
-    navigate("/products", { replace: true });
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-16 pb-24">
@@ -195,29 +173,6 @@ export default function ProductPage() {
           <ArrowLeft className="mr-1 h-4 w-4" />
           戻る
         </Button>
-        <div className="flex gap-1">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>商品を削除しますか？</AlertDialogTitle>
-                <AlertDialogDescription>
-                  「{product.name}」を削除します。この操作は取り消せません。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  削除する
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
       </div>
 
       {editing ? (

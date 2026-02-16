@@ -4,7 +4,6 @@ import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList, Pencil }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -131,7 +130,7 @@ export default function InventoryListPage() {
       className={`whitespace-nowrap cursor-pointer select-none hover:bg-muted/80 ${className || ""}`}
       onClick={() => toggleSort(sortField)}
     >
-      <span className="inline-flex items-center gap-1">
+      <span className="inline-flex items-center gap-1 justify-center">
         {label}
         {sortKey === sortField && (
           <ArrowUpDown className="h-3 w-3 text-primary" />
@@ -281,15 +280,15 @@ export default function InventoryListPage() {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="w-10" />
-                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px]" />
-                <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
+                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center" />
+                <TableHead className="whitespace-nowrap min-w-[100px] text-center">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
-                <TableHead className="whitespace-nowrap min-w-[80px]">親カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px]">子カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px]">カラー</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">親カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">子カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">カラー</TableHead>
                 <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px]" />
                 <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
-                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-right" />
+                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-center" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -305,22 +304,22 @@ export default function InventoryListPage() {
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.product_number || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono">
+                  <TableCell className="whitespace-nowrap text-sm font-mono text-center">
                     {product.computed_model_number}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     {product.name}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.parent_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.sub_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.color || "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-mono">
@@ -346,7 +345,7 @@ export default function InventoryListPage() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-right">
+                  <TableCell className="whitespace-nowrap text-sm text-center font-bold">
                     {product.stock}
                   </TableCell>
                 </TableRow>
