@@ -35,8 +35,8 @@ function ProtectedRoutes() {
   return (
     <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
-        <Route path="/" element={<InventoryListPage />} />
-        <Route path="/products" element={<ProductListPage />} />
+        <Route path="/" element={<ProductListPage />} />
+        <Route path="/inventory" element={<InventoryListPage />} />
         <Route path="/products/add" element={<AddProductPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/scan" element={<ScanPage />} />
