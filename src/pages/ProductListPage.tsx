@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink } from "lucide-react";
+import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,8 @@ import { useInventory } from "@/hooks/use-inventory";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
 import InlineProductEditRow from "@/components/InlineProductEditRow";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type SortKey = "name" | "product_number" | "price_with_tax" | "barcode";
 type SortDir = "asc" | "desc";
@@ -68,7 +70,6 @@ export default function ProductListPage() {
   const filtered = useMemo(() => {
     let result = products;
 
-    // Text search
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -80,7 +81,6 @@ export default function ProductListPage() {
       );
     }
 
-    // Filters
     if (filterParentCategory !== "__all__") {
       result = result.filter((p) => p.parent_category === filterParentCategory);
     }
@@ -94,7 +94,6 @@ export default function ProductListPage() {
       result = result.filter((p) => p.is_new);
     }
 
-    // Sort
     result = [...result].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -142,12 +141,23 @@ export default function ProductListPage() {
     }
   };
 
+  const handleDelete = async (productId: string, productName: string) => {
+    const { error } = await supabase.from("products").delete().eq("id", productId);
+    if (error) {
+      toast.error("削除に失敗しました");
+      return;
+    }
+    toast.success(`${productName} を削除しました`);
+    setEditingId(null);
+    await refresh();
+  };
+
   const SortableHead = ({ label, sortField, className }: { label: string; sortField: SortKey; className?: string }) => (
     <TableHead
       className={`whitespace-nowrap cursor-pointer select-none hover:bg-muted/80 ${className || ""}`}
       onClick={() => toggleSort(sortField)}
     >
-      <span className="inline-flex items-center gap-1">
+      <span className="inline-flex items-center gap-1 justify-center">
         {label}
         {sortKey === sortField && (
           <ArrowUpDown className="h-3 w-3 text-primary" />
@@ -272,6 +282,7 @@ export default function ProductListPage() {
                 <Checkbox
                   checked={filterNewOnly}
                   onCheckedChange={(checked) => setFilterNewOnly(checked === true)}
+                  className="rounded"
                 />
                 新商品のみ
               </label>
@@ -294,19 +305,20 @@ export default function ProductListPage() {
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="whitespace-nowrap w-[50px]"></TableHead>
-                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px]" />
-                <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
+                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center" />
+                <TableHead className="whitespace-nowrap min-w-[100px] text-center">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
-                <TableHead className="whitespace-nowrap min-w-[80px]">カタログページ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px]">親カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px]">子カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px]">カラー</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">カタログページ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">親カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">子カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">カラー</TableHead>
                 <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px]" />
-                <SortableHead label="上代(税込)" sortField="price_with_tax" className="min-w-[90px] text-right" />
-                <TableHead className="whitespace-nowrap min-w-[90px] text-right">上代(税抜)</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px]">サイズ</TableHead>
+                <SortableHead label="上代(税込)" sortField="price_with_tax" className="min-w-[90px] text-center" />
+                <TableHead className="whitespace-nowrap min-w-[90px] text-center">上代(税抜)</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">サイズ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[50px] text-center">削除</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -317,11 +329,12 @@ export default function ProductListPage() {
                     product={product}
                     onSave={async () => { setEditingId(null); await refresh(); }}
                     onCancel={() => setEditingId(null)}
+                    onDelete={async () => handleDelete(product.id, product.name)}
                   />
                 ) : (
                 <TableRow
                   key={product.id}
-                  className="hover:bg-muted/50"
+                  className={`hover:bg-muted/50 ${product.is_new ? "bg-yellow-50 dark:bg-yellow-950/30" : ""}`}
                 >
                   <TableCell className="whitespace-nowrap">
                     <Button
@@ -333,45 +346,45 @@ export default function ProductListPage() {
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.product_number || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono">
+                  <TableCell className="whitespace-nowrap text-sm font-mono text-center">
                     {product.computed_model_number}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     {product.name}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.catalog_page || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.parent_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.sub_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.color || "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-mono">
                     {product.barcode}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-right">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.price_with_tax != null
                       ? `¥${product.price_with_tax.toLocaleString()}`
                       : "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-right">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.computed_price_without_tax != null
                       ? `¥${product.computed_price_without_tax.toLocaleString()}`
                       : "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="whitespace-nowrap text-sm text-center">
                     {product.size || "—"}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Checkbox checked={product.is_new} disabled className="pointer-events-none" />
+                    <Checkbox checked={product.is_new} disabled className="pointer-events-none rounded" />
                   </TableCell>
                   <TableCell className="text-center">
                     {product.product_number ? (
@@ -393,6 +406,18 @@ export default function ProductListPage() {
                     ) : (
                       "—"
                     )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => {
+                        setEditingId(product.id);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
                   </TableCell>
                 </TableRow>
                 )

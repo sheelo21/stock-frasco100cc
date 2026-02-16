@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,6 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useDropdownOptions, type OptionType } from "@/hooks/use-dropdown-options";
 import { toast } from "sonner";
@@ -20,9 +31,10 @@ interface InlineProductEditRowProps {
   product: Product & { computed_model_number: string; computed_price_without_tax: number | null };
   onSave: () => Promise<void>;
   onCancel: () => void;
+  onDelete: () => Promise<void>;
 }
 
-export default function InlineProductEditRow({ product, onSave, onCancel }: InlineProductEditRowProps) {
+export default function InlineProductEditRow({ product, onSave, onCancel, onDelete }: InlineProductEditRowProps) {
   const { getOptionsByType } = useDropdownOptions();
   const [saving, setSaving] = useState(false);
 
@@ -99,43 +111,68 @@ export default function InlineProductEditRow({ product, onSave, onCancel }: Inli
           </Button>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <Input value={productNumber} onChange={(e) => setProductNumber(e.target.value)} className="h-8 text-xs w-20" />
       </TableCell>
-      <TableCell className="whitespace-nowrap text-xs font-mono">
+      <TableCell className="whitespace-nowrap text-xs font-mono text-center">
         {modelNumber}
       </TableCell>
       <TableCell>
         <Input value={name} onChange={(e) => setName(e.target.value)} className="h-8 text-xs min-w-[100px]" />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <Input value={catalogPage} onChange={(e) => setCatalogPage(e.target.value)} className="h-8 text-xs w-16" />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <DropdownCell type="parent_category" value={parentCategory} onChange={setParentCategory} />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <DropdownCell type="sub_category" value={subCategory} onChange={setSubCategory} />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <DropdownCell type="color" value={color} onChange={setColor} />
       </TableCell>
       <TableCell>
         <Input value={barcode} onChange={(e) => setBarcode(e.target.value)} className="h-8 text-xs font-mono w-28" />
       </TableCell>
-      <TableCell>
-        <Input type="number" min="0" value={priceWithTax} onChange={(e) => setPriceWithTax(e.target.value)} className="h-8 text-xs text-right w-20" />
+      <TableCell className="text-center">
+        <Input type="number" min="0" value={priceWithTax} onChange={(e) => setPriceWithTax(e.target.value)} className="h-8 text-xs text-center w-20" />
       </TableCell>
-      <TableCell className="whitespace-nowrap text-sm text-right">
+      <TableCell className="whitespace-nowrap text-sm text-center">
         {priceWithoutTax != null ? `¥${priceWithoutTax.toLocaleString()}` : "—"}
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <DropdownCell type="size" value={size} onChange={(v) => setSize(v)} />
       </TableCell>
       <TableCell className="text-center">
-        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} />
+        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} className="rounded" />
       </TableCell>
-      <TableCell />
+      <TableCell className="text-center">
+        {/* empty - product page link not applicable in edit mode */}
+      </TableCell>
+      <TableCell className="text-center">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>商品を削除しますか？</AlertDialogTitle>
+              <AlertDialogDescription>
+                「{product.name}」を削除します。この操作は取り消せません。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>キャンセル</AlertDialogCancel>
+              <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                削除する
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </TableCell>
     </TableRow>
   );
 }
