@@ -43,6 +43,30 @@ export default function ProductListPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((p) => p.id)));
+    }
+  };
+
+  const handleCreateOrder = () => {
+    const selected = products.filter((p) => selectedIds.has(p.id));
+    if (selected.length === 0) return;
+    navigate("/orders/create", { state: { products: selected } });
+  };
 
   // Unique values for filter dropdowns
   const uniqueValues = useMemo(() => {
@@ -193,6 +217,17 @@ export default function ProductListPage() {
         </div>
       </div>
 
+      {/* Order creation bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border border-primary bg-primary/5 p-3">
+          <span className="text-sm font-medium text-foreground">{selectedIds.size}件選択中</span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>選択解除</Button>
+            <Button size="sm" onClick={handleCreateOrder}>発注書作成</Button>
+          </div>
+        </div>
+      )}
+
       {/* Search + Filter toggle */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
@@ -302,6 +337,13 @@ export default function ProductListPage() {
           <Table className="text-xs" style={{ minWidth: 1800 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">
+                <TableHead className="whitespace-nowrap w-[40px] bg-muted">
+                  <Checkbox
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onCheckedChange={toggleSelectAll}
+                    className="rounded"
+                  />
+                </TableHead>
                 <TableHead className="whitespace-nowrap w-[50px] bg-muted"></TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px] text-center bg-muted">商品ページ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center bg-muted">新商品</TableHead>
@@ -334,6 +376,13 @@ export default function ProductListPage() {
                   key={product.id}
                   className={`hover:bg-muted/50 ${product.is_new ? "bg-yellow-50 dark:bg-yellow-950/30" : ""}`}
                 >
+                  <TableCell className="whitespace-nowrap">
+                    <Checkbox
+                      checked={selectedIds.has(product.id)}
+                      onCheckedChange={() => toggleSelect(product.id)}
+                      className="rounded"
+                    />
+                  </TableCell>
                   <TableCell className="whitespace-nowrap">
                     <Button
                       variant="ghost"

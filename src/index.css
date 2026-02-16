@@ -110,3 +110,36 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
+
+/* Print styles for A4 output */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11px !important;
+  }
+
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  .print\\:block {
+    display: block !important;
+  }
+
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm 15mm;
+  }
+
+  nav, .safe-bottom {
+    display: none !important;
+  }
+}
