@@ -1,9 +1,10 @@
 import { NavLink } from "react-router-dom";
-import { Package, BoxesIcon, Settings } from "lucide-react";
+import { Package, BoxesIcon, Settings, FileText } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: Package, label: "商品一覧" },
   { to: "/inventory", icon: BoxesIcon, label: "在庫一覧" },
+  { to: "/orders", icon: FileText, label: "発注履歴" },
   { to: "/settings", icon: Settings, label: "設定" },
 ];
 

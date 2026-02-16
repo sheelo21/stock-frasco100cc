@@ -14,6 +14,9 @@ import AuthPage from "@/pages/AuthPage";
 import AddProductPage from "@/pages/AddProductPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SettingsDetailPage from "@/pages/SettingsDetailPage";
+import OrderListPage from "@/pages/OrderListPage";
+import OrderCreatePage from "@/pages/OrderCreatePage";
+import OrderDetailPage from "@/pages/OrderDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,9 @@ function ProtectedRoutes() {
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/scan" element={<ScanPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/orders" element={<OrderListPage />} />
+        <Route path="/orders/create" element={<OrderCreatePage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/settings/:type" element={<SettingsDetailPage />} />
         <Route path="*" element={<NotFound />} />

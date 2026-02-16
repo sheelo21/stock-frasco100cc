@@ -38,6 +38,111 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          color: string | null
+          created_at: string
+          discounted_price_with_tax: number
+          discounted_price_without_tax: number
+          id: string
+          model_number: string
+          order_id: string
+          price_with_tax: number
+          price_without_tax: number
+          product_id: string | null
+          product_name: string
+          quantity: number
+          size: string | null
+          subtotal: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          discounted_price_with_tax?: number
+          discounted_price_without_tax?: number
+          id?: string
+          model_number?: string
+          order_id: string
+          price_with_tax?: number
+          price_without_tax?: number
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          size?: string | null
+          subtotal?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          discounted_price_with_tax?: number
+          discounted_price_without_tax?: number
+          id?: string
+          model_number?: string
+          order_id?: string
+          price_with_tax?: number
+          price_without_tax?: number
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          size?: string | null
+          subtotal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          company_name: string
+          created_at: string
+          discount_rate: number
+          id: string
+          order_date: string
+          shipping_cost: number
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string
+          created_at?: string
+          discount_rate?: number
+          id?: string
+          order_date?: string
+          shipping_cost?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          discount_rate?: number
+          id?: string
+          order_date?: string
+          shipping_cost?: number
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           barcode: string
