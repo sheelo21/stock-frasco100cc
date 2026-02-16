@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import ScanPage from "@/pages/ScanPage";
 import ProductPage from "@/pages/ProductPage";
 import ProductListPage from "@/pages/ProductListPage";
+import InventoryListPage from "@/pages/InventoryListPage";
 import HistoryPage from "@/pages/HistoryPage";
 import AuthPage from "@/pages/AuthPage";
 import AddProductPage from "@/pages/AddProductPage";
@@ -34,10 +35,11 @@ function ProtectedRoutes() {
   return (
     <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
-        <Route path="/" element={<ScanPage />} />
-        <Route path="/product/:id" element={<ProductPage />} />
+        <Route path="/" element={<InventoryListPage />} />
         <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/add" element={<AddProductPage />} />
+        <Route path="/product/:id" element={<ProductPage />} />
+        <Route path="/scan" element={<ScanPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />
