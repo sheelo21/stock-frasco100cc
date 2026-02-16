@@ -300,8 +300,8 @@ export default function ProductListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <div className="rounded-lg border border-border overflow-x-auto">
-          <Table>
+      <div className="rounded-lg border border-border overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30" style={{ overflowX: 'scroll' }}>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="whitespace-nowrap w-[50px]"></TableHead>
@@ -316,9 +316,9 @@ export default function ProductListPage() {
                 <SortableHead label="上代(税込)" sortField="price_with_tax" className="min-w-[90px] text-center" />
                 <TableHead className="whitespace-nowrap min-w-[90px] text-center">上代(税抜)</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center">サイズ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[50px] text-center">削除</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -346,52 +346,61 @@ export default function ProductListPage() {
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.product_number || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono text-center">
+                  <TableCell className="whitespace-nowrap font-mono text-center">
                     {product.computed_model_number}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-medium">
+                  <TableCell className="whitespace-nowrap font-medium">
                     {product.name}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.catalog_page || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.parent_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.sub_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.color || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono">
+                  <TableCell className="whitespace-nowrap font-mono">
                     {product.barcode}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.price_with_tax != null
                       ? `¥${product.price_with_tax.toLocaleString()}`
                       : "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.computed_price_without_tax != null
                       ? `¥${product.computed_price_without_tax.toLocaleString()}`
                       : "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.size || "—"}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Checkbox checked={product.is_new} disabled className="pointer-events-none rounded" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => {
+                        setEditingId(product.id);
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
                   </TableCell>
                   <TableCell className="text-center">
                     {product.product_number ? (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-7 text-xs"
+                        className="h-6 text-xs"
                         asChild
                       >
                         <a
@@ -408,16 +417,9 @@ export default function ProductListPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => {
-                        setEditingId(product.id);
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+                    {product.is_new ? (
+                      <Badge className="bg-warning text-warning-foreground text-[10px] px-1.5 py-0.5">New</Badge>
+                    ) : null}
                   </TableCell>
                 </TableRow>
                 )
