@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink } from "lucide-react";
+import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +24,10 @@ import { useInventory } from "@/hooks/use-inventory";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
 
-type SortKey = "name" | "product_number" | "price_with_tax" | "barcode";
+type SortKey = "name" | "product_number" | "stock" | "barcode";
 type SortDir = "asc" | "desc";
 
-export default function ProductListPage() {
+export default function InventoryListPage() {
   const { products, loading, refresh } = useInventory();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -35,11 +35,9 @@ export default function ProductListPage() {
   const [filterParentCategory, setFilterParentCategory] = useState<string>("__all__");
   const [filterSubCategory, setFilterSubCategory] = useState<string>("__all__");
   const [filterColor, setFilterColor] = useState<string>("__all__");
-  const [filterNewOnly, setFilterNewOnly] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  // Unique values for filter dropdowns
   const uniqueValues = useMemo(() => {
     const parentCategories = [...new Set(products.map((p) => p.parent_category).filter(Boolean))] as string[];
     const subCategories = [...new Set(products.map((p) => p.sub_category).filter(Boolean))] as string[];
@@ -52,21 +50,18 @@ export default function ProductListPage() {
     if (filterParentCategory !== "__all__") count++;
     if (filterSubCategory !== "__all__") count++;
     if (filterColor !== "__all__") count++;
-    if (filterNewOnly) count++;
     return count;
-  }, [filterParentCategory, filterSubCategory, filterColor, filterNewOnly]);
+  }, [filterParentCategory, filterSubCategory, filterColor]);
 
   const clearFilters = () => {
     setFilterParentCategory("__all__");
     setFilterSubCategory("__all__");
     setFilterColor("__all__");
-    setFilterNewOnly(false);
   };
 
   const filtered = useMemo(() => {
     let result = products;
 
-    // Text search
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -78,7 +73,6 @@ export default function ProductListPage() {
       );
     }
 
-    // Filters
     if (filterParentCategory !== "__all__") {
       result = result.filter((p) => p.parent_category === filterParentCategory);
     }
@@ -88,11 +82,7 @@ export default function ProductListPage() {
     if (filterColor !== "__all__") {
       result = result.filter((p) => p.color === filterColor);
     }
-    if (filterNewOnly) {
-      result = result.filter((p) => p.is_new);
-    }
 
-    // Sort
     result = [...result].sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -102,8 +92,8 @@ export default function ProductListPage() {
         case "product_number":
           cmp = (a.product_number || "").localeCompare(b.product_number || "", "ja");
           break;
-        case "price_with_tax":
-          cmp = (a.price_with_tax ?? 0) - (b.price_with_tax ?? 0);
+        case "stock":
+          cmp = a.stock - b.stock;
           break;
         case "barcode":
           cmp = a.barcode.localeCompare(b.barcode);
@@ -113,7 +103,7 @@ export default function ProductListPage() {
     });
 
     return result;
-  }, [products, search, filterParentCategory, filterSubCategory, filterColor, filterNewOnly, sortKey, sortDir]);
+  }, [products, search, filterParentCategory, filterSubCategory, filterColor, sortKey, sortDir]);
 
   const displayProducts = useMemo(
     () =>
@@ -123,10 +113,6 @@ export default function ProductListPage() {
           p.product_number
             ? `${p.product_number}${p.size ? `-${p.size}` : ""}`
             : "—",
-        computed_price_without_tax:
-          p.price_with_tax != null
-            ? Math.round(p.price_with_tax / 1.1)
-            : null,
       })),
     [filtered]
   );
@@ -158,12 +144,28 @@ export default function ProductListPage() {
     <div className="flex flex-col gap-4 p-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">商品一覧</h1>
+          <h1 className="text-2xl font-bold text-foreground">在庫一覧</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {filtered.length} / {products.length} 商品
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/scan")}
+          >
+            <Scan className="h-4 w-4 mr-1" />
+            スキャン
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/history")}
+          >
+            <ClipboardList className="h-4 w-4 mr-1" />
+            履歴
+          </Button>
           <CsvImportDialog onComplete={refresh} />
           <Button
             variant="outline"
@@ -175,10 +177,6 @@ export default function ProductListPage() {
           >
             <Download className="h-4 w-4 mr-1" />
             CSV出力
-          </Button>
-          <Button size="sm" onClick={() => navigate("/products/add")}>
-            <Plus className="h-4 w-4 mr-1" />
-            追加
           </Button>
         </div>
       </div>
@@ -222,7 +220,7 @@ export default function ProductListPage() {
               </Button>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">親カテゴリ</label>
               <Select value={filterParentCategory} onValueChange={setFilterParentCategory}>
@@ -265,15 +263,6 @@ export default function ProductListPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer text-sm">
-                <Checkbox
-                  checked={filterNewOnly}
-                  onCheckedChange={(checked) => setFilterNewOnly(checked === true)}
-                />
-                新商品のみ
-              </label>
-            </div>
           </div>
         </div>
       )}
@@ -291,38 +280,20 @@ export default function ProductListPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="whitespace-nowrap w-[50px]"></TableHead>
                 <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px]" />
                 <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
-                <TableHead className="whitespace-nowrap min-w-[80px]">カタログページ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px]">親カテゴリ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px]">子カテゴリ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px]">カラー</TableHead>
                 <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px]" />
-                <SortableHead label="上代(税込)" sortField="price_with_tax" className="min-w-[90px] text-right" />
-                <TableHead className="whitespace-nowrap min-w-[90px] text-right">上代(税抜)</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px]">サイズ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
+                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayProducts.map((product) => (
-                <TableRow
-                  key={product.id}
-                  className="hover:bg-muted/50"
-                >
-                  <TableCell className="whitespace-nowrap">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => navigate(`/product/${product.id}`)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                  </TableCell>
+                <TableRow key={product.id} className="hover:bg-muted/50">
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.product_number || "—"}
                   </TableCell>
@@ -331,9 +302,6 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-medium">
                     {product.name}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {product.catalog_page || "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.parent_category || "—"}
@@ -346,22 +314,6 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-sm font-mono">
                     {product.barcode}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-right">
-                    {product.price_with_tax != null
-                      ? `¥${product.price_with_tax.toLocaleString()}`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-right">
-                    {product.computed_price_without_tax != null
-                      ? `¥${product.computed_price_without_tax.toLocaleString()}`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {product.size || "—"}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox checked={product.is_new} disabled className="pointer-events-none" />
                   </TableCell>
                   <TableCell className="text-center">
                     {product.product_number ? (
@@ -376,13 +328,15 @@ export default function ProductListPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <ExternalLink className="h-3 w-3 mr-1" />
                           商品ページ
                         </a>
                       </Button>
                     ) : (
                       "—"
                     )}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-right">
+                    {product.stock}
                   </TableCell>
                 </TableRow>
               ))}
