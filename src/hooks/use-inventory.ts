@@ -52,7 +52,7 @@ export function useInventory() {
       .from("stock_logs")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(500);
     if (data) {
       // Enrich with product names
       const productIds = [...new Set(data.map((l: any) => l.product_id))];
