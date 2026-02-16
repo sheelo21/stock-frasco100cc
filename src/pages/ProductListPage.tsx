@@ -300,11 +300,35 @@ export default function ProductListPage() {
           該当する商品がありません
         </p>
       ) : (
-      <div className="rounded-lg border border-border overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30" style={{ overflowX: 'scroll' }}>
-          <Table className="text-xs">
-            <TableHeader>
+      <div className="rounded-lg border border-border flex flex-col" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+          {/* Top scrollbar */}
+          <div
+            className="overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
+            style={{ overflowX: 'scroll' }}
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const body = target.nextElementSibling as HTMLElement;
+              if (body) body.scrollLeft = target.scrollLeft;
+            }}
+          >
+            <div style={{ height: 1, minWidth: 1800 }} />
+          </div>
+          {/* Table body with synced scroll */}
+          <div
+            className="overflow-auto flex-1 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
+            style={{ overflowX: 'scroll' }}
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const topBar = target.previousElementSibling as HTMLElement;
+              if (topBar) topBar.scrollLeft = target.scrollLeft;
+            }}
+          >
+          <Table className="text-xs" style={{ minWidth: 1800 }}>
+            <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow className="bg-muted/50">
                 <TableHead className="whitespace-nowrap w-[50px]"></TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
                 <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center" />
                 <TableHead className="whitespace-nowrap min-w-[100px] text-center">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
@@ -317,8 +341,6 @@ export default function ProductListPage() {
                 <TableHead className="whitespace-nowrap min-w-[90px] text-center">上代(税抜)</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center">サイズ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[50px] text-center">削除</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -345,6 +367,32 @@ export default function ProductListPage() {
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {product.product_number ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-xs"
+                        asChild
+                      >
+                        <a
+                          href={`https://b-five.jp/personal/?action_goods_new=true&goods_no=${encodeURIComponent(product.product_number)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          商品ページ
+                        </a>
+                      </Button>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {product.is_new ? (
+                      <Badge className="bg-warning text-warning-foreground text-[10px] px-1.5 py-0.5">New</Badge>
+                    ) : null}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-center">
                     {product.product_number || "—"}
@@ -395,37 +443,12 @@ export default function ProductListPage() {
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   </TableCell>
-                  <TableCell className="text-center">
-                    {product.product_number ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-xs"
-                        asChild
-                      >
-                        <a
-                          href={`https://b-five.jp/personal/?action_goods_new=true&goods_no=${encodeURIComponent(product.product_number)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          商品ページ
-                        </a>
-                      </Button>
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {product.is_new ? (
-                      <Badge className="bg-warning text-warning-foreground text-[10px] px-1.5 py-0.5">New</Badge>
-                    ) : null}
-                  </TableCell>
                 </TableRow>
                 )
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>

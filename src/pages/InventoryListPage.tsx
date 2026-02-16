@@ -275,9 +275,31 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <div className="rounded-lg border border-border overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30" style={{ overflowX: 'scroll' }}>
-          <Table className="text-xs">
-            <TableHeader>
+        <div className="rounded-lg border border-border flex flex-col" style={{ maxHeight: 'calc(100vh - 260px)' }}>
+          {/* Top scrollbar */}
+          <div
+            className="overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
+            style={{ overflowX: 'scroll' }}
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const body = target.nextElementSibling as HTMLElement;
+              if (body) body.scrollLeft = target.scrollLeft;
+            }}
+          >
+            <div style={{ height: 1, minWidth: 1400 }} />
+          </div>
+          {/* Table body with synced scroll */}
+          <div
+            className="overflow-auto flex-1 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
+            style={{ overflowX: 'scroll' }}
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const topBar = target.previousElementSibling as HTMLElement;
+              if (topBar) topBar.scrollLeft = target.scrollLeft;
+            }}
+          >
+          <Table className="text-xs" style={{ minWidth: 1400 }}>
+            <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow className="bg-muted/50">
                 <TableHead className="w-10" />
                 <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center" />
@@ -352,6 +374,7 @@ export default function InventoryListPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>
