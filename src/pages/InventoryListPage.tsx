@@ -276,9 +276,9 @@ export default function InventoryListPage() {
         </p>
       ) : (
         <div className="rounded-lg border border-border flex flex-col" style={{ maxHeight: 'calc(100vh - 260px)' }}>
-          {/* Top scrollbar */}
+          {/* Top scrollbar - synced with table scroll */}
           <div
-            className="overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
+            className="overflow-x-auto shrink-0 [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30"
             style={{ overflowX: 'scroll' }}
             onScroll={(e) => {
               const target = e.currentTarget;
@@ -286,7 +286,7 @@ export default function InventoryListPage() {
               if (body) body.scrollLeft = target.scrollLeft;
             }}
           >
-            <div style={{ height: 1, minWidth: 1400 }} />
+            <div style={{ height: 1, minWidth: 1200 }} />
           </div>
           {/* Table body with synced scroll */}
           <div
@@ -298,19 +298,18 @@ export default function InventoryListPage() {
               if (topBar) topBar.scrollLeft = target.scrollLeft;
             }}
           >
-          <Table className="text-xs" style={{ minWidth: 1400 }}>
-            <TableHeader className="sticky top-0 z-10 bg-muted">
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-10" />
-                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center" />
-                <TableHead className="whitespace-nowrap min-w-[100px] text-center">商品型番</TableHead>
-                <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center">親カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center">子カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px] text-center">カラー</TableHead>
-                <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px]" />
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
-                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-center" />
+          <Table className="text-xs" style={{ minWidth: 1200 }}>
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow className="bg-muted">
+                <TableHead className="w-10 bg-muted" />
+                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center bg-muted" />
+                <TableHead className="whitespace-nowrap min-w-[100px] text-center bg-muted">商品型番</TableHead>
+                <SortableHead label="商品名" sortField="name" className="min-w-[120px] bg-muted" />
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center bg-muted">親カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center bg-muted">子カテゴリ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[60px] text-center bg-muted">カラー</TableHead>
+                <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px] bg-muted" />
+                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-center bg-muted" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -346,26 +345,6 @@ export default function InventoryListPage() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono">
                     {product.barcode}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {product.product_number ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs"
-                        asChild
-                      >
-                        <a
-                          href={`https://b-five.jp/personal/?action_goods_new=true&goods_no=${encodeURIComponent(product.product_number)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          商品ページ
-                        </a>
-                      </Button>
-                    ) : (
-                      "—"
-                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-center font-bold">
                     {product.stock}
