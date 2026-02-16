@@ -112,6 +112,12 @@ export default function InlineProductEditRow({ product, onSave, onCancel, onDele
         </div>
       </TableCell>
       <TableCell className="text-center">
+        {/* empty - product page link not applicable in edit mode */}
+      </TableCell>
+      <TableCell className="text-center">
+        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} className="rounded" />
+      </TableCell>
+      <TableCell className="text-center">
         <Input value={productNumber} onChange={(e) => setProductNumber(e.target.value)} className="h-8 text-xs w-20" />
       </TableCell>
       <TableCell className="whitespace-nowrap text-xs font-mono text-center">
@@ -138,7 +144,7 @@ export default function InlineProductEditRow({ product, onSave, onCancel, onDele
       <TableCell className="text-center">
         <Input type="number" min="0" value={priceWithTax} onChange={(e) => setPriceWithTax(e.target.value)} className="h-8 text-xs text-center w-20" />
       </TableCell>
-      <TableCell className="whitespace-nowrap text-sm text-center">
+      <TableCell className="whitespace-nowrap text-xs text-center">
         {priceWithoutTax != null ? `¥${priceWithoutTax.toLocaleString()}` : "—"}
       </TableCell>
       <TableCell className="text-center">
@@ -166,12 +172,6 @@ export default function InlineProductEditRow({ product, onSave, onCancel, onDele
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </TableCell>
-      <TableCell className="text-center">
-        {/* empty - product page link not applicable in edit mode */}
-      </TableCell>
-      <TableCell className="text-center">
-        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} className="rounded" />
       </TableCell>
     </TableRow>
   );
