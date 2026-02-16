@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useInventory } from "@/hooks/use-inventory";
+import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
+import CsvImportDialog from "@/components/CsvImportDialog";
 
 export default function ProductListPage() {
-  const { products, loading } = useInventory();
+  const { products, loading, refresh } = useInventory();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
@@ -58,10 +60,24 @@ export default function ProductListPage() {
             {filtered.length} / {products.length} 商品
           </p>
         </div>
-        <Button size="sm" onClick={() => navigate("/products/add")}>
-          <Plus className="h-4 w-4 mr-1" />
-          追加
-        </Button>
+        <div className="flex items-center gap-2">
+          <CsvImportDialog onComplete={refresh} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const csv = exportProductsToCSV(products);
+              downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
+            }}
+          >
+            <Download className="h-4 w-4 mr-1" />
+            CSV出力
+          </Button>
+          <Button size="sm" onClick={() => navigate("/products/add")}>
+            <Plus className="h-4 w-4 mr-1" />
+            追加
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
