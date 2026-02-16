@@ -275,8 +275,8 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <div className="rounded-lg border border-border overflow-x-auto">
-          <Table>
+        <div className="rounded-lg border border-border overflow-x-auto [&::-webkit-scrollbar]:h-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-muted/30" style={{ overflowX: 'scroll' }}>
+          <Table className="text-xs">
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="w-10" />
@@ -304,25 +304,25 @@ export default function InventoryListPage() {
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.product_number || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono text-center">
+                  <TableCell className="whitespace-nowrap font-mono text-center">
                     {product.computed_model_number}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-medium">
+                  <TableCell className="whitespace-nowrap font-medium">
                     {product.name}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.parent_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.sub_category || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center">
+                  <TableCell className="whitespace-nowrap text-center">
                     {product.color || "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm font-mono">
+                  <TableCell className="whitespace-nowrap font-mono">
                     {product.barcode}
                   </TableCell>
                   <TableCell className="text-center">
@@ -345,7 +345,7 @@ export default function InventoryListPage() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-center font-bold">
+                  <TableCell className="whitespace-nowrap text-center font-bold">
                     {product.stock}
                   </TableCell>
                 </TableRow>

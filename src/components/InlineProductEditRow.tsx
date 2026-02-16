@@ -145,12 +145,6 @@ export default function InlineProductEditRow({ product, onSave, onCancel, onDele
         <DropdownCell type="size" value={size} onChange={(v) => setSize(v)} />
       </TableCell>
       <TableCell className="text-center">
-        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} className="rounded" />
-      </TableCell>
-      <TableCell className="text-center">
-        {/* empty - product page link not applicable in edit mode */}
-      </TableCell>
-      <TableCell className="text-center">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -172,6 +166,12 @@ export default function InlineProductEditRow({ product, onSave, onCancel, onDele
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </TableCell>
+      <TableCell className="text-center">
+        {/* empty - product page link not applicable in edit mode */}
+      </TableCell>
+      <TableCell className="text-center">
+        <Checkbox checked={isNew} onCheckedChange={(c) => setIsNew(c === true)} className="rounded" />
       </TableCell>
     </TableRow>
   );
