@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList } from "lucide-react";
+import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -280,6 +280,7 @@ export default function InventoryListPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
+                <TableHead className="w-10" />
                 <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px]" />
                 <TableHead className="whitespace-nowrap min-w-[100px]">商品型番</TableHead>
                 <SortableHead label="商品名" sortField="name" className="min-w-[120px]" />
@@ -294,6 +295,16 @@ export default function InventoryListPage() {
             <TableBody>
               {displayProducts.map((product) => (
                 <TableRow key={product.id} className="hover:bg-muted/50">
+                  <TableCell className="w-10 p-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate(`/products/${product.id}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     {product.product_number || "—"}
                   </TableCell>
