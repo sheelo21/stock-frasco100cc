@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil } from "lucide-react";
+import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -308,6 +308,7 @@ export default function ProductListPage() {
                 <TableHead className="whitespace-nowrap min-w-[90px] text-right">上代(税抜)</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px]">サイズ</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center">新商品</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px] text-center">商品ページ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -368,6 +369,27 @@ export default function ProductListPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     <Checkbox checked={product.is_new} disabled className="pointer-events-none" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {product.product_number ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        asChild
+                      >
+                        <a
+                          href={`https://b-five.jp/personal/?action_goods_new=true&goods_no=${encodeURIComponent(product.product_number)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          商品ページ
+                        </a>
+                      </Button>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

@@ -99,11 +99,11 @@ export function useInventory() {
   );
 
   const addStock = useCallback(
-    async (productId: string) => {
+    async (productId: string, quantity: number = 1) => {
       const product = products.find((p) => p.id === productId);
-      if (!product || !user) return false;
+      if (!product || !user || quantity <= 0) return false;
 
-      const newStock = product.stock + 1;
+      const newStock = product.stock + quantity;
       const { error: updateError } = await supabase
         .from("products")
         .update({ stock: newStock })
@@ -113,7 +113,7 @@ export function useInventory() {
       await supabase.from("stock_logs").insert({
         product_id: productId,
         user_id: user.id,
-        change: 1,
+        change: quantity,
         new_stock: newStock,
         type: "in",
       });
@@ -125,11 +125,11 @@ export function useInventory() {
   );
 
   const removeStock = useCallback(
-    async (productId: string) => {
+    async (productId: string, quantity: number = 1) => {
       const product = products.find((p) => p.id === productId);
-      if (!product || !user || product.stock <= 0) return false;
+      if (!product || !user || quantity <= 0 || product.stock < quantity) return false;
 
-      const newStock = product.stock - 1;
+      const newStock = product.stock - quantity;
       const { error: updateError } = await supabase
         .from("products")
         .update({ stock: newStock })
@@ -139,7 +139,7 @@ export function useInventory() {
       await supabase.from("stock_logs").insert({
         product_id: productId,
         user_id: user.id,
-        change: -1,
+        change: -quantity,
         new_stock: newStock,
         type: "out",
       });
