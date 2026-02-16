@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,9 +196,6 @@ export default function ProductPage() {
           戻る
         </Button>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={startEdit}>
-            <Pencil className="h-4 w-4" />
-          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon">

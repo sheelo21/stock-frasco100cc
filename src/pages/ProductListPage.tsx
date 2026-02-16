@@ -23,6 +23,7 @@ import {
 import { useInventory } from "@/hooks/use-inventory";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
+import InlineProductEditRow from "@/components/InlineProductEditRow";
 
 type SortKey = "name" | "product_number" | "price_with_tax" | "barcode";
 type SortDir = "asc" | "desc";
@@ -38,6 +39,7 @@ export default function ProductListPage() {
   const [filterNewOnly, setFilterNewOnly] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Unique values for filter dropdowns
   const uniqueValues = useMemo(() => {
@@ -308,7 +310,15 @@ export default function ProductListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayProducts.map((product) => (
+              {displayProducts.map((product) =>
+                editingId === product.id ? (
+                  <InlineProductEditRow
+                    key={product.id}
+                    product={product}
+                    onSave={async () => { setEditingId(null); await refresh(); }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : (
                 <TableRow
                   key={product.id}
                   className="hover:bg-muted/50"
@@ -318,7 +328,7 @@ export default function ProductListPage() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7"
-                      onClick={() => navigate(`/product/${product.id}`)}
+                      onClick={() => setEditingId(product.id)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
@@ -385,7 +395,8 @@ export default function ProductListPage() {
                     )}
                   </TableCell>
                 </TableRow>
-              ))}
+                )
+              )}
             </TableBody>
           </Table>
         </div>
