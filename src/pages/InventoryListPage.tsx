@@ -22,7 +22,7 @@ import {
 import { useInventory } from "@/hooks/use-inventory";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
-import ScrollSyncedTable from "@/components/ScrollSyncedTable";
+
 
 type SortKey = "name" | "product_number" | "stock" | "barcode";
 type SortDir = "asc" | "desc";
@@ -273,7 +273,7 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : (
-        <ScrollSyncedTable maxHeight="calc(100vh - 220px)">
+        <div className="rounded-lg border border-border overflow-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
           <Table className="text-xs" style={{ minWidth: 1200 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">
@@ -329,7 +329,7 @@ export default function InventoryListPage() {
               ))}
             </TableBody>
            </Table>
-          </ScrollSyncedTable>
+          </div>
       )}
     </div>
   );
