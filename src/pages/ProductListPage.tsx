@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink, Trash2 } from "lucide-react";
+import { Plus, Search, Download, Filter, ArrowUpDown, X, Pencil, ExternalLink, Trash2, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useInventory } from "@/hooks/use-inventory";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
 import InlineProductEditRow from "@/components/InlineProductEditRow";
@@ -34,6 +41,7 @@ type SortDir = "asc" | "desc";
 export default function ProductListPage() {
   const { products, loading, refresh } = useInventory();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filterParentCategory, setFilterParentCategory] = useState<string>("__all__");
@@ -68,7 +76,6 @@ export default function ProductListPage() {
     navigate("/orders/create", { state: { products: selected } });
   };
 
-  // Unique values for filter dropdowns
   const uniqueValues = useMemo(() => {
     const parentCategories = [...new Set(products.map((p) => p.parent_category).filter(Boolean))] as string[];
     const subCategories = [...new Set(products.map((p) => p.sub_category).filter(Boolean))] as string[];
@@ -192,28 +199,50 @@ export default function ProductListPage() {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4 pb-24">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">商品一覧</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <CsvImportDialog onComplete={refresh} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const csv = exportProductsToCSV(products);
-              downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
-            }}
-          >
-            <Download className="h-4 w-4 mr-1" />
-            CSV出力
-          </Button>
-          <Button size="sm" onClick={() => navigate("/products/add")}>
-            <Plus className="h-4 w-4 mr-1" />
-            追加
-          </Button>
+    <div className="flex flex-col gap-3 p-4 pb-24">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">商品一覧</h1>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {isMobile ? (
+            <>
+              <Button size="sm" onClick={() => navigate("/products/add")} className="h-8 px-2.5">
+                <Plus className="h-4 w-4" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 px-2.5">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem onSelect={() => {
+                    const csv = exportProductsToCSV(products);
+                    downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
+                  }}>
+                    <Download className="h-4 w-4 mr-2" />
+                    CSV出力
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <CsvImportDialog onComplete={refresh} />
+            </>
+          ) : (
+            <>
+              <CsvImportDialog onComplete={refresh} />
+              <Button variant="outline" size="sm" onClick={() => {
+                const csv = exportProductsToCSV(products);
+                downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
+              }}>
+                <Download className="h-4 w-4 mr-1" />
+                CSV出力
+              </Button>
+              <Button size="sm" onClick={() => navigate("/products/add")}>
+                <Plus className="h-4 w-4 mr-1" />
+                追加
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -222,7 +251,7 @@ export default function ProductListPage() {
         <div className="flex items-center justify-between rounded-lg border border-primary bg-primary/5 p-3">
           <span className="text-sm font-medium text-foreground">{selectedIds.size}件選択中</span>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>選択解除</Button>
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>解除</Button>
             <Button size="sm" onClick={handleCreateOrder}>発注書作成</Button>
           </div>
         </div>
@@ -236,17 +265,17 @@ export default function ProductListPage() {
             placeholder="商品名・型番・JANコードで検索"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9"
           />
         </div>
         <Button
           variant={showFilters ? "default" : "outline"}
           size="sm"
           onClick={() => setShowFilters((v) => !v)}
-          className="relative"
+          className="relative h-9"
         >
-          <Filter className="h-4 w-4 mr-1" />
-          絞り込み
+          <Filter className="h-4 w-4" />
+          {!isMobile && <span className="ml-1">絞り込み</span>}
           {activeFilterCount > 0 && (
             <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
               {activeFilterCount}
@@ -257,7 +286,7 @@ export default function ProductListPage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        <div className="rounded-lg border border-border bg-card p-3 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-foreground">フィルタ</p>
             {activeFilterCount > 0 && (
@@ -267,46 +296,34 @@ export default function ProductListPage() {
               </Button>
             )}
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">親カテゴリ</label>
               <Select value={filterParentCategory} onValueChange={setFilterParentCategory}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover z-50">
                   <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.parentCategories.map((v) => (
-                    <SelectItem key={v} value={v}>{v}</SelectItem>
-                  ))}
+                  {uniqueValues.parentCategories.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">子カテゴリ</label>
               <Select value={filterSubCategory} onValueChange={setFilterSubCategory}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover z-50">
                   <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.subCategories.map((v) => (
-                    <SelectItem key={v} value={v}>{v}</SelectItem>
-                  ))}
+                  {uniqueValues.subCategories.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">カラー</label>
               <Select value={filterColor} onValueChange={setFilterColor}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-popover z-50">
                   <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.colors.map((v) => (
-                    <SelectItem key={v} value={v}>{v}</SelectItem>
-                  ))}
+                  {uniqueValues.colors.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
@@ -332,8 +349,57 @@ export default function ProductListPage() {
         <p className="py-16 text-center text-sm text-muted-foreground">
           該当する商品がありません
         </p>
+      ) : isMobile ? (
+        /* Mobile card view */
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              checked={filtered.length > 0 && selectedIds.size === filtered.length}
+              onCheckedChange={toggleSelectAll}
+              className="rounded"
+            />
+            <span className="text-xs text-muted-foreground">すべて選択</span>
+          </div>
+          {displayProducts.map((product) => (
+            <div
+              key={product.id}
+              className={`rounded-xl border border-border bg-card p-3 shadow-sm ${product.is_new ? "border-warning/50 bg-warning/5" : ""}`}
+            >
+              <div className="flex items-start gap-2.5">
+                <Checkbox
+                  checked={selectedIds.has(product.id)}
+                  onCheckedChange={() => toggleSelect(product.id)}
+                  className="rounded mt-1 flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0" onClick={() => navigate(`/product/${product.id}`)}>
+                  <div className="flex items-center gap-1.5">
+                    {product.is_new && (
+                      <Badge className="bg-warning text-warning-foreground text-[9px] px-1 py-0">New</Badge>
+                    )}
+                    <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {[product.computed_model_number !== "—" && product.computed_model_number, product.parent_category, product.sub_category, product.color].filter(Boolean).join(" / ")}
+                  </p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <p className="text-xs font-mono text-muted-foreground">JAN: {product.barcode}</p>
+                    <p className="text-sm font-bold text-foreground">
+                      {product.price_with_tax != null ? `¥${product.price_with_tax.toLocaleString()}` : "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
-      <div className="rounded-lg border border-border overflow-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
+        /* Desktop table view */
+        <div className="rounded-lg border border-border overflow-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
           <Table className="text-xs" style={{ minWidth: 1800 }}>
             <TableHeader className="sticky top-0 z-10">
               <TableRow className="bg-muted">
@@ -384,23 +450,13 @@ export default function ProductListPage() {
                     />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => setEditingId(product.id)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                   </TableCell>
                   <TableCell className="text-center">
                     {product.product_number ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-xs"
-                        asChild
-                      >
+                      <Button variant="outline" size="sm" className="h-6 text-xs" asChild>
                         <a
                           href={`https://b-five.jp/personal/?action_goods_new=true&goods_no=${encodeURIComponent(product.product_number)}`}
                           target="_blank"
@@ -410,61 +466,30 @@ export default function ProductListPage() {
                           商品ページ
                         </a>
                       </Button>
-                    ) : (
-                      "—"
-                    )}
+                    ) : "—"}
                   </TableCell>
                   <TableCell className="text-center">
                     {product.is_new ? (
                       <Badge className="bg-warning text-warning-foreground text-[10px] px-1.5 py-0.5">New</Badge>
                     ) : null}
                   </TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.product_number || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-center">{product.computed_model_number}</TableCell>
+                  <TableCell className="whitespace-nowrap font-medium">{product.name}</TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.catalog_page || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.parent_category || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.sub_category || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.color || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono">{product.barcode}</TableCell>
                   <TableCell className="whitespace-nowrap text-center">
-                    {product.product_number || "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap font-mono text-center">
-                    {product.computed_model_number}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap font-medium">
-                    {product.name}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.catalog_page || "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.parent_category || "—"}
+                    {product.price_with_tax != null ? `¥${product.price_with_tax.toLocaleString()}` : "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-center">
-                    {product.sub_category || "—"}
+                    {product.computed_price_without_tax != null ? `¥${product.computed_price_without_tax.toLocaleString()}` : "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.color || "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap font-mono">
-                    {product.barcode}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.price_with_tax != null
-                      ? `¥${product.price_with_tax.toLocaleString()}`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.computed_price_without_tax != null
-                      ? `¥${product.computed_price_without_tax.toLocaleString()}`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">
-                    {product.size || "—"}
-                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-center">{product.size || "—"}</TableCell>
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => {
-                        setEditingId(product.id);
-                      }}
-                    >
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   </TableCell>
@@ -472,7 +497,7 @@ export default function ProductListPage() {
                 )
               )}
             </TableBody>
-           </Table>
+          </Table>
         </div>
       )}
     </div>
