@@ -43,7 +43,7 @@ export default function ProductListPage() {
   const { products, loading, refresh } = useInventory();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { isAdmin } = useUserRole();
+  const { isAdmin, isClient } = useUserRole();
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filterParentCategory, setFilterParentCategory] = useState<string>("__all__");
@@ -387,11 +387,14 @@ export default function ProductListPage() {
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {[product.computed_model_number !== "—" && product.computed_model_number, product.parent_category, product.sub_category, product.color].filter(Boolean).join(" / ")}
                   </p>
-                  <div className="flex items-center justify-between mt-1.5">
+                   <div className="flex items-center justify-between mt-1.5">
                     <p className="text-xs font-mono text-muted-foreground">JAN: {product.barcode}</p>
-                    <p className="text-sm font-bold text-foreground">
-                      {product.price_with_tax != null ? `¥${product.price_with_tax.toLocaleString()}` : "—"}
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <p className="text-xs text-muted-foreground">在庫: <span className="font-bold text-foreground">{product.stock}</span></p>
+                      <p className="text-sm font-bold text-foreground">
+                        {product.price_with_tax != null ? `¥${product.price_with_tax.toLocaleString()}` : "—"}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 {isAdmin && (
@@ -432,6 +435,7 @@ export default function ProductListPage() {
                 <SortableHead label="上代(税込)" sortField="price_with_tax" className="min-w-[90px] text-center bg-muted" />
                 <TableHead className="whitespace-nowrap min-w-[90px] text-center bg-muted">上代(税抜)</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[60px] text-center bg-muted">サイズ</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[70px] text-center bg-muted">在庫数</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[50px] text-center bg-muted">削除</TableHead>
               </TableRow>
             </TableHeader>
@@ -498,6 +502,7 @@ export default function ProductListPage() {
                     {product.computed_price_without_tax != null ? `¥${product.computed_price_without_tax.toLocaleString()}` : "—"}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-center">{product.size || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap text-center font-bold">{product.stock}</TableCell>
                   <TableCell className="text-center">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />

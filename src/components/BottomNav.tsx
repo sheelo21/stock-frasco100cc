@@ -7,8 +7,8 @@ export default function BottomNav() {
 
   const navItems = [
     { to: "/", icon: Package, label: "商品一覧" },
-    { to: "/inventory", icon: BoxesIcon, label: "在庫一覧" },
-    { to: "/orders", icon: FileText, label: "発注履歴" },
+    ...(!isClient ? [{ to: "/inventory", icon: BoxesIcon, label: "在庫一覧" }] : []),
+    ...(!isClient ? [{ to: "/orders", icon: FileText, label: "発注履歴" }] : []),
     ...(!isClient ? [{ to: "/settings", icon: Settings, label: "設定" }] : []),
   ];
 
