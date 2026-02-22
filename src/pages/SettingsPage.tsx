@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Tag, Palette, Layers, Ruler, LogOut, Shield } from "lucide-react";
+import { ChevronRight, Tag, Palette, Layers, Ruler, LogOut, Shield, Users } from "lucide-react";
 import { OPTION_TYPES, type OptionType } from "@/hooks/use-dropdown-options";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,7 +22,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { role } = useUserRole();
+  const { role, isAdmin } = useUserRole();
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -54,6 +54,25 @@ export default function SettingsPage() {
       <p className="text-sm text-muted-foreground">
         商品登録時のプルダウン選択肢を管理します。
       </p>
+
+      {/* User management - admin only */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate("/settings/users")}
+          className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm hover:bg-muted/50 active:bg-muted transition-colors text-left"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
+            <Users className="h-5 w-5 text-destructive" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">ユーザー管理</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              ユーザーの権限を管理します
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </button>
+      )}
 
       <div className="grid gap-3">
         {(Object.keys(OPTION_TYPES) as OptionType[]).map((type) => {

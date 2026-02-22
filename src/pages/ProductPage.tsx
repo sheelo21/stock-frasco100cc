@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/use-user-role";
 import { ArrowLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ export default function ProductPage() {
   const { products, addStock, removeStock, setStockValue, loading, refresh } =
     useInventory();
   const { getOptionsByType } = useDropdownOptions();
+  const { isAdmin } = useUserRole();
 
   const product = products.find((p) => p.id === id);
 
@@ -167,6 +169,11 @@ export default function ProductPage() {
           <ArrowLeft className="mr-1 h-4 w-4" />
           戻る
         </Button>
+        {!editing && isAdmin && (
+          <Button variant="outline" size="sm" onClick={startEdit}>
+            編集
+          </Button>
+        )}
       </div>
 
       {editing ? (

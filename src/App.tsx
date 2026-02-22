@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useUserRole } from "@/hooks/use-user-role";
 import BottomNav from "@/components/BottomNav";
 import ScanPage from "@/pages/ScanPage";
 import ProductPage from "@/pages/ProductPage";
@@ -14,6 +15,7 @@ import AuthPage from "@/pages/AuthPage";
 import AddProductPage from "@/pages/AddProductPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SettingsDetailPage from "@/pages/SettingsDetailPage";
+import UserManagementPage from "@/pages/UserManagementPage";
 import OrderListPage from "@/pages/OrderListPage";
 import OrderCreatePage from "@/pages/OrderCreatePage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
@@ -23,8 +25,9 @@ const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
+  const { isClient, loading: roleLoading } = useUserRole();
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -48,8 +51,9 @@ function ProtectedRoutes() {
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/orders/create" element={<OrderCreatePage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/settings/:type" element={<SettingsDetailPage />} />
+        {!isClient && <Route path="/settings" element={<SettingsPage />} />}
+        {!isClient && <Route path="/settings/users" element={<UserManagementPage />} />}
+        {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNav />
