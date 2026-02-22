@@ -1,14 +1,17 @@
 import { NavLink } from "react-router-dom";
 import { Package, BoxesIcon, Settings, FileText } from "lucide-react";
-
-const navItems = [
-  { to: "/", icon: Package, label: "商品一覧" },
-  { to: "/inventory", icon: BoxesIcon, label: "在庫一覧" },
-  { to: "/orders", icon: FileText, label: "発注履歴" },
-  { to: "/settings", icon: Settings, label: "設定" },
-];
+import { useUserRole } from "@/hooks/use-user-role";
 
 export default function BottomNav() {
+  const { isClient } = useUserRole();
+
+  const navItems = [
+    { to: "/", icon: Package, label: "商品一覧" },
+    { to: "/inventory", icon: BoxesIcon, label: "在庫一覧" },
+    { to: "/orders", icon: FileText, label: "発注履歴" },
+    ...(!isClient ? [{ to: "/settings", icon: Settings, label: "設定" }] : []),
+  ];
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card safe-bottom">
       <div className="mx-auto flex max-w-lg items-stretch">

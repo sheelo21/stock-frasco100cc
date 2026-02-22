@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useInventory } from "@/hooks/use-inventory";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserRole } from "@/hooks/use-user-role";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
 import InlineProductEditRow from "@/components/InlineProductEditRow";
@@ -42,6 +43,7 @@ export default function ProductListPage() {
   const { products, loading, refresh } = useInventory();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filterParentCategory, setFilterParentCategory] = useState<string>("__all__");
@@ -206,9 +208,11 @@ export default function ProductListPage() {
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {isMobile ? (
             <>
-              <Button size="sm" onClick={() => navigate("/products/add")} className="h-8 px-2.5">
-                <Plus className="h-4 w-4" />
-              </Button>
+              {isAdmin && (
+                <Button size="sm" onClick={() => navigate("/products/add")} className="h-8 px-2.5">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 px-2.5">
@@ -225,11 +229,11 @@ export default function ProductListPage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <CsvImportDialog onComplete={refresh} />
+              {isAdmin && <CsvImportDialog onComplete={refresh} />}
             </>
           ) : (
             <>
-              <CsvImportDialog onComplete={refresh} />
+              {isAdmin && <CsvImportDialog onComplete={refresh} />}
               <Button variant="outline" size="sm" onClick={() => {
                 const csv = exportProductsToCSV(products);
                 downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -237,10 +241,12 @@ export default function ProductListPage() {
                 <Download className="h-4 w-4 mr-1" />
                 CSV出力
               </Button>
-              <Button size="sm" onClick={() => navigate("/products/add")}>
-                <Plus className="h-4 w-4 mr-1" />
-                追加
-              </Button>
+              {isAdmin && (
+                <Button size="sm" onClick={() => navigate("/products/add")}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  追加
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -388,11 +394,13 @@ export default function ProductListPage() {
                     </p>
                   </div>
                 </div>
+                {isAdmin && (
                 <div className="flex flex-col gap-1 flex-shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+                )}
               </div>
             </div>
           ))}
@@ -450,9 +458,11 @@ export default function ProductListPage() {
                     />
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
+                    {isAdmin && (
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingId(product.id)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     {product.product_number ? (
