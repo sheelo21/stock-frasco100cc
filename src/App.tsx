@@ -43,10 +43,11 @@ function ProtectedRoutes() {
     <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
         <Route path="/" element={<ProductListPage />} />
-        <Route path="/inventory" element={<InventoryListPage />} />
-        <Route path="/products/add" element={<AddProductPage />} />
-        <Route path="/product/:id" element={<ProductPage />} />
-        <Route path="/scan" element={<ScanPage />} />
+        {!isClient && <Route path="/inventory" element={<InventoryListPage />} />}
+        {!isClient && <Route path="/products/add" element={<AddProductPage />} />}
+        {!isClient && <Route path="/product/:id" element={<ProductPage />} />}
+        {!isClient && <Route path="/scan" element={<ScanPage />} />}
+        {!isClient && <Route path="/history" element={<HistoryPage />} />}
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/orders/create" element={<OrderCreatePage />} />
