@@ -1,13 +1,25 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/use-inventory";
+
+interface ClientOption {
+  user_id: string;
+  display_name: string | null;
+  discount_rate: number | null;
+}
+
+function formatRate(rate: number): string {
+  const display = rate * 10;
+  return `${display % 1 === 0 ? display.toFixed(0) : display}掛け`;
+}
 
 export default function OrderCreatePage() {
   const location = useLocation();
@@ -15,10 +27,37 @@ export default function OrderCreatePage() {
   const { user } = useAuth();
   const selectedProducts: Product[] = location.state?.products || [];
 
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [selectedClient, setSelectedClient] = useState<string>("");
   const [companyName, setCompanyName] = useState("");
   const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10));
   const [discountRate, setDiscountRate] = useState("0.6");
   const [shippingCost, setShippingCost] = useState("0");
+
+  useEffect(() => {
+    (async () => {
+      // Fetch client users with discount_rate
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "client");
+      if (!roles?.length) return;
+      const clientIds = roles.map((r) => r.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, discount_rate")
+        .in("user_id", clientIds);
+      setClients((profiles as any) || []);
+    })();
+  }, []);
+
+  const handleClientSelect = (userId: string) => {
+    setSelectedClient(userId);
+    const client = clients.find((c) => c.user_id === userId);
+    if (client) {
+      setCompanyName(client.display_name || "");
+      if (client.discount_rate != null) {
+        setDiscountRate(String(client.discount_rate));
+      }
+    }
+  };
   const [quantities, setQuantities] = useState<Record<string, number>>(
     Object.fromEntries(selectedProducts.map((p) => [p.id, 1]))
   );
@@ -123,6 +162,23 @@ export default function OrderCreatePage() {
 
       {/* Basic info */}
       <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+        {clients.length > 0 && (
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">クライアント選択（自動入力）</label>
+            <Select value={selectedClient} onValueChange={handleClientSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="クライアントを選択..." />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => (
+                  <SelectItem key={c.user_id} value={c.user_id}>
+                    {c.display_name || "不明"}{c.discount_rate != null ? ` (${formatRate(c.discount_rate)})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">会社名</label>
@@ -134,7 +190,10 @@ export default function OrderCreatePage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">掛率</label>
-            <Input type="number" step="0.01" min="0" max="1" value={discountRate} onChange={(e) => setDiscountRate(e.target.value)} />
+            <div className="flex items-center gap-2">
+              <Input type="number" step="0.01" min="0" max="1" value={discountRate} onChange={(e) => setDiscountRate(e.target.value)} />
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{rate > 0 ? formatRate(rate) : ""}</span>
+            </div>
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">送料(税込)</label>

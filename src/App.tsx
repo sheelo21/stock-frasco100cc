@@ -48,7 +48,6 @@ function ProtectedRoutes() {
         {!isClient && <Route path="/product/:id" element={<ProductPage />} />}
         {!isClient && <Route path="/scan" element={<ScanPage />} />}
         {!isClient && <Route path="/history" element={<HistoryPage />} />}
-        <Route path="/history" element={<HistoryPage />} />
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/orders/create" element={<OrderCreatePage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
