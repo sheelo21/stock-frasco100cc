@@ -16,6 +16,11 @@ interface Order {
   created_at: string;
 }
 
+function formatRate(rate: number): string {
+  const display = rate * 10;
+  return `${display % 1 === 0 ? display.toFixed(0) : display}掛け`;
+}
+
 const ITEMS_PER_PAGE = 20;
 
 export default function OrderListPage() {
@@ -71,7 +76,7 @@ export default function OrderListPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-foreground truncate">{order.company_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {order.order_date} · 掛率 {order.discount_rate}
+                    {order.order_date} · {formatRate(order.discount_rate)}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
