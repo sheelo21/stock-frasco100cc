@@ -34,6 +34,11 @@ interface OrderItem {
   subtotal: number;
 }
 
+function formatRate(rate: number): string {
+  const display = rate * 10;
+  return `${display % 1 === 0 ? display.toFixed(0) : display}掛け`;
+}
+
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -190,7 +195,10 @@ export default function OrderDetailPage() {
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">掛率</label>
-              <Input type="number" step="0.01" min="0" max="1" value={discountRate} onChange={(e) => setDiscountRate(e.target.value)} />
+              <div className="flex items-center gap-2">
+                <Input type="number" step="0.01" min="0" max="1" value={discountRate} onChange={(e) => setDiscountRate(e.target.value)} />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{rate > 0 ? formatRate(rate) : ""}</span>
+              </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">送料(税込)</label>
@@ -281,7 +289,7 @@ export default function OrderDetailPage() {
             </div>
             <div className="text-right text-sm">
               <p>発行日: {orderDate}</p>
-              <p>掛率: {discountRate}</p>
+              <p>掛率: {rate > 0 ? formatRate(rate) : discountRate}</p>
             </div>
           </div>
 
