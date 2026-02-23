@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users } from "lucide-react";
+import { ArrowLeft, Shield, Users, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,6 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole, type AppRole } from "@/hooks/use-user-role";
 import { toast } from "sonner";
@@ -20,6 +28,7 @@ interface UserWithRole {
   display_name: string | null;
   role: AppRole;
   role_row_id: string;
+  discount_rate: number | null;
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -34,12 +43,25 @@ const ROLE_COLORS: Record<AppRole, string> = {
   client: "bg-muted text-muted-foreground border-border",
 };
 
+function formatRate(rate: number | null): string {
+  if (rate == null) return "—";
+  const display = rate * 10;
+  return `${display % 1 === 0 ? display.toFixed(0) : display}掛け`;
+}
+
 export default function UserManagementPage() {
   const navigate = useNavigate();
   const { isAdmin } = useUserRole();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newDisplayName, setNewDisplayName] = useState("");
+  const [newRole, setNewRole] = useState<AppRole>("client");
+  const [newDiscountRate, setNewDiscountRate] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -48,10 +70,9 @@ export default function UserManagementPage() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    // Get profiles + roles
     const { data: profiles, error: pErr } = await supabase
       .from("profiles")
-      .select("user_id, display_name");
+      .select("user_id, display_name, discount_rate");
 
     const { data: roles, error: rErr } = await supabase
       .from("user_roles")
@@ -65,7 +86,7 @@ export default function UserManagementPage() {
 
     const roleMap = new Map(roles?.map((r) => [r.user_id, { role: r.role as AppRole, id: r.id }]));
 
-    const merged: UserWithRole[] = (profiles || []).map((p) => {
+    const merged: UserWithRole[] = (profiles || []).map((p: any) => {
       const r = roleMap.get(p.user_id);
       return {
         user_id: p.user_id,
@@ -73,10 +94,10 @@ export default function UserManagementPage() {
         display_name: p.display_name,
         role: r?.role || "client",
         role_row_id: r?.id || "",
+        discount_rate: p.discount_rate,
       };
     });
 
-    // Sort: admin first, then user, then client
     const order: Record<AppRole, number> = { admin: 0, user: 1, client: 2 };
     merged.sort((a, b) => order[a.role] - order[b.role]);
 
@@ -86,13 +107,12 @@ export default function UserManagementPage() {
 
   const handleRoleChange = async (userId: string, roleRowId: string, newRole: AppRole) => {
     setUpdatingId(userId);
-    
+
     if (roleRowId) {
       const { error } = await supabase
         .from("user_roles")
         .update({ role: newRole })
         .eq("id", roleRowId);
-      
       if (error) {
         toast.error("権限の更新に失敗しました");
         setUpdatingId(null);
@@ -102,7 +122,6 @@ export default function UserManagementPage() {
       const { error } = await supabase
         .from("user_roles")
         .insert({ user_id: userId, role: newRole });
-      
       if (error) {
         toast.error("権限の設定に失敗しました");
         setUpdatingId(null);
@@ -115,16 +134,68 @@ export default function UserManagementPage() {
     await fetchUsers();
   };
 
+  const handleDiscountRateChange = async (userId: string, value: string) => {
+    const rate = value === "" ? null : parseFloat(value);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ discount_rate: rate })
+      .eq("user_id", userId);
+    if (error) {
+      toast.error("掛率の更新に失敗しました");
+      return;
+    }
+    toast.success("掛率を更新しました");
+    await fetchUsers();
+  };
+
+  const handleCreateUser = async () => {
+    if (!newEmail.trim() || !newPassword.trim()) {
+      toast.error("メールアドレスとパスワードを入力してください");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("パスワードは6文字以上にしてください");
+      return;
+    }
+    setCreating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("create-user", {
+        body: {
+          email: newEmail,
+          password: newPassword,
+          display_name: newDisplayName || newEmail,
+          role: newRole,
+          discount_rate: newRole === "client" && newDiscountRate ? parseFloat(newDiscountRate) : null,
+        },
+      });
+
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || "ユーザー作成に失敗しました");
+        return;
+      }
+
+      toast.success("ユーザーを作成しました");
+      setShowAddDialog(false);
+      setNewEmail("");
+      setNewPassword("");
+      setNewDisplayName("");
+      setNewRole("client");
+      setNewDiscountRate("");
+      await fetchUsers();
+    } catch {
+      toast.error("ユーザー作成に失敗しました");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-8 pb-24">
         <Shield className="h-16 w-16 text-muted-foreground" />
-        <p className="text-lg font-medium text-muted-foreground">
-          管理者権限が必要です
-        </p>
-        <Button variant="outline" onClick={() => navigate("/settings")}>
-          戻る
-        </Button>
+        <p className="text-lg font-medium text-muted-foreground">管理者権限が必要です</p>
+        <Button variant="outline" onClick={() => navigate("/settings")}>戻る</Button>
       </div>
     );
   }
@@ -135,15 +206,17 @@ export default function UserManagementPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">ユーザー管理</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex-1">ユーザー管理</h1>
+        <Button size="sm" onClick={() => setShowAddDialog(true)}>
+          <Plus className="h-4 w-4 mr-1" />
+          追加
+        </Button>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <Users className="h-4 w-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            各ユーザーの権限を変更できます
-          </p>
+          <p className="text-sm text-muted-foreground">各ユーザーの権限を変更できます</p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
           <div className="rounded-lg border border-border p-2">
@@ -179,28 +252,105 @@ export default function UserManagementPage() {
                 <p className="text-sm font-semibold text-foreground truncate">
                   {u.display_name || u.email}
                 </p>
-                <Badge variant="outline" className={`text-[10px] mt-0.5 ${ROLE_COLORS[u.role]}`}>
-                  {ROLE_LABELS[u.role]}
-                </Badge>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant="outline" className={`text-[10px] ${ROLE_COLORS[u.role]}`}>
+                    {ROLE_LABELS[u.role]}
+                  </Badge>
+                  {u.role === "client" && (
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatRate(u.discount_rate)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <Select
-                value={u.role}
-                onValueChange={(v) => handleRoleChange(u.user_id, u.role_row_id, v as AppRole)}
-                disabled={updatingId === u.user_id}
-              >
-                <SelectTrigger className="w-[120px] h-9 text-sm">
+              <div className="flex items-center gap-2">
+                {u.role === "client" && (
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    placeholder="掛率"
+                    value={u.discount_rate ?? ""}
+                    onChange={(e) => handleDiscountRateChange(u.user_id, e.target.value)}
+                    className="h-9 w-[70px] text-xs text-center"
+                  />
+                )}
+                <Select
+                  value={u.role}
+                  onValueChange={(v) => handleRoleChange(u.user_id, u.role_row_id, v as AppRole)}
+                  disabled={updatingId === u.user_id}
+                >
+                  <SelectTrigger className="w-[120px] h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="admin">管理者</SelectItem>
+                    <SelectItem value="user">利用者</SelectItem>
+                    <SelectItem value="client">クライアント</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add User Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>ユーザー追加</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">表示名</label>
+              <Input value={newDisplayName} onChange={(e) => setNewDisplayName(e.target.value)} placeholder="山田太郎" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">メールアドレス *</label>
+              <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="user@example.com" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">パスワード *</label>
+              <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="6文字以上" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">権限</label>
+              <Select value={newRole} onValueChange={(v) => setNewRole(v as AppRole)}>
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
+                <SelectContent>
                   <SelectItem value="admin">管理者</SelectItem>
                   <SelectItem value="user">利用者</SelectItem>
                   <SelectItem value="client">クライアント</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          ))}
-        </div>
-      )}
+            {newRole === "client" && (
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">掛率（例: 0.6 = 6掛け）</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="1"
+                  value={newDiscountRate}
+                  onChange={(e) => setNewDiscountRate(e.target.value)}
+                  placeholder="0.6"
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>キャンセル</Button>
+            <Button onClick={handleCreateUser} disabled={creating}>
+              {creating ? "作成中..." : "作成"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
