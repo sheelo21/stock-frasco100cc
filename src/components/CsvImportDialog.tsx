@@ -67,10 +67,12 @@ export default function CsvImportDialog({ onComplete, trigger }: CsvImportDialog
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setResult(null); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Upload className="h-4 w-4 mr-1" />
-          CSV取込
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="sm">
+            <Upload className="h-4 w-4 mr-1" />
+            CSV取込
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
