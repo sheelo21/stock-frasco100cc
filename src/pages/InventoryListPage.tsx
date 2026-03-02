@@ -168,6 +168,12 @@ export default function InventoryListPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
+                  <CsvImportDialog onComplete={refresh} trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      CSV取込
+                    </DropdownMenuItem>
+                  } />
                   <DropdownMenuItem onSelect={() => {
                     const csv = exportProductsToCSV(products);
                     downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -177,7 +183,6 @@ export default function InventoryListPage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <CsvImportDialog onComplete={refresh} />
             </>
           ) : (
             <>
