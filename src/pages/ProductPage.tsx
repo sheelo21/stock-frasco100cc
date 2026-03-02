@@ -169,11 +169,6 @@ export default function ProductPage() {
           <ArrowLeft className="mr-1 h-4 w-4" />
           戻る
         </Button>
-        {!editing && isAdmin && (
-          <Button variant="outline" size="sm" onClick={startEdit}>
-            編集
-          </Button>
-        )}
       </div>
 
       {editing ? (
