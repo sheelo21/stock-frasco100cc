@@ -15,9 +15,10 @@ import { importProductsFromCSV, type ImportResult } from "@/lib/csv-utils";
 
 interface CsvImportDialogProps {
   onComplete: () => void;
+  trigger?: React.ReactNode;
 }
 
-export default function CsvImportDialog({ onComplete }: CsvImportDialogProps) {
+export default function CsvImportDialog({ onComplete, trigger }: CsvImportDialogProps) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
