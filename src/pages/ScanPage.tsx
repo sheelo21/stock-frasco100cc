@@ -26,7 +26,7 @@ export default function ScanPage() {
         if (mode === "in") {
           const ok = await addStock(product.id, quantity);
           if (ok) {
-            toast.success(`${product.name} を${quantity}個入庫しました（在庫: ${product.stock + quantity}）`);
+            toast.success("読み取りが完了しました。", { description: `${product.name} を${quantity}個入庫しました（在庫: ${product.stock + quantity}）` });
           } else {
             toast.error("入庫に失敗しました");
           }
@@ -37,7 +37,7 @@ export default function ScanPage() {
           }
           const ok = await removeStock(product.id, quantity);
           if (ok) {
-            toast.success(`${product.name} を${quantity}個出庫しました（在庫: ${product.stock - quantity}）`);
+            toast.success("読み取りが完了しました。", { description: `${product.name} を${quantity}個出庫しました（在庫: ${product.stock - quantity}）` });
           } else {
             toast.error("出庫に失敗しました");
           }

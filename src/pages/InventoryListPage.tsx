@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ArrowUpDown, X, Download, Scan, ClipboardList, Pencil, MoreVertical } from "lucide-react";
+import { Search, Filter, ArrowUpDown, X, Download, Upload, Scan, ClipboardList, Pencil, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -158,6 +158,9 @@ export default function InventoryListPage() {
               <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => navigate("/scan")}>
                 <Scan className="h-4 w-4" />
               </Button>
+              <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => navigate("/history")}>
+                <ClipboardList className="h-4 w-4" />
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 px-2.5">
@@ -165,10 +168,12 @@ export default function InventoryListPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
-                  <DropdownMenuItem onSelect={() => navigate("/history")}>
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    履歴
-                  </DropdownMenuItem>
+                  <CsvImportDialog onComplete={refresh} trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      CSV取込
+                    </DropdownMenuItem>
+                  } />
                   <DropdownMenuItem onSelect={() => {
                     const csv = exportProductsToCSV(products);
                     downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
@@ -178,7 +183,6 @@ export default function InventoryListPage() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <CsvImportDialog onComplete={refresh} />
             </>
           ) : (
             <>
