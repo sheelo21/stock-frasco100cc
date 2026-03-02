@@ -158,6 +158,9 @@ export default function InventoryListPage() {
               <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => navigate("/scan")}>
                 <Scan className="h-4 w-4" />
               </Button>
+              <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={() => navigate("/history")}>
+                <ClipboardList className="h-4 w-4" />
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 px-2.5">
@@ -165,10 +168,6 @@ export default function InventoryListPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
-                  <DropdownMenuItem onSelect={() => navigate("/history")}>
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    履歴
-                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => {
                     const csv = exportProductsToCSV(products);
                     downloadCSV(csv, `products_${new Date().toISOString().slice(0, 10)}.csv`);
