@@ -109,6 +109,7 @@ export type Database = {
           company_name: string
           created_at: string
           discount_rate: number
+          doc_type: string
           id: string
           order_date: string
           shipping_cost: number
@@ -121,6 +122,7 @@ export type Database = {
           company_name?: string
           created_at?: string
           discount_rate?: number
+          doc_type?: string
           id?: string
           order_date?: string
           shipping_cost?: number
@@ -133,6 +135,7 @@ export type Database = {
           company_name?: string
           created_at?: string
           discount_rate?: number
+          doc_type?: string
           id?: string
           order_date?: string
           shipping_cost?: number
