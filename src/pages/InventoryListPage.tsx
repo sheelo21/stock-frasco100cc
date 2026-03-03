@@ -1,24 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, ArrowUpDown, X, Download, Upload, Scan, ClipboardList, Pencil, MoreVertical } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Download, Upload, Scan, ClipboardList, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +14,9 @@ import { useInventory } from "@/hooks/use-inventory";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { exportProductsToCSV, downloadCSV } from "@/lib/csv-utils";
 import CsvImportDialog from "@/components/CsvImportDialog";
+import InventoryFilterPanel from "@/components/inventory/InventoryFilterPanel";
+import InventoryDesktopTable from "@/components/inventory/InventoryDesktopTable";
+import InventoryMobileCard from "@/components/inventory/InventoryMobileCard";
 
 type SortKey = "name" | "product_number" | "stock" | "barcode";
 type SortDir = "asc" | "desc";
@@ -133,20 +121,6 @@ export default function InventoryListPage() {
     }
   };
 
-  const SortableHead = ({ label, sortField, className }: { label: string; sortField: SortKey; className?: string }) => (
-    <TableHead
-      className={`whitespace-nowrap cursor-pointer select-none hover:bg-muted/80 ${className || ""}`}
-      onClick={() => toggleSort(sortField)}
-    >
-      <span className="inline-flex items-center gap-1 justify-center">
-        {label}
-        {sortKey === sortField && (
-          <ArrowUpDown className="h-3 w-3 text-primary" />
-        )}
-      </span>
-    </TableHead>
-  );
-
   return (
     <div className="flex flex-col gap-3 p-4 pb-24">
       {/* Header */}
@@ -236,49 +210,17 @@ export default function InventoryListPage() {
 
       {/* Filter panel */}
       {showFilters && (
-        <div className="rounded-lg border border-border bg-card p-3 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground">フィルタ</p>
-            {activeFilterCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                <X className="h-3 w-3 mr-1" />
-                クリア
-              </Button>
-            )}
-          </div>
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">親カテゴリ</label>
-              <Select value={filterParentCategory} onValueChange={setFilterParentCategory}>
-                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.parentCategories.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">子カテゴリ</label>
-              <Select value={filterSubCategory} onValueChange={setFilterSubCategory}>
-                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.subCategories.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">カラー</label>
-              <Select value={filterColor} onValueChange={setFilterColor}>
-                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="__all__">すべて</SelectItem>
-                  {uniqueValues.colors.map((v) => (<SelectItem key={v} value={v}>{v}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
+        <InventoryFilterPanel
+          uniqueValues={uniqueValues}
+          filterParentCategory={filterParentCategory}
+          setFilterParentCategory={setFilterParentCategory}
+          filterSubCategory={filterSubCategory}
+          setFilterSubCategory={setFilterSubCategory}
+          filterColor={filterColor}
+          setFilterColor={setFilterColor}
+          activeFilterCount={activeFilterCount}
+          clearFilters={clearFilters}
+        />
       )}
 
       {loading ? (
@@ -290,66 +232,18 @@ export default function InventoryListPage() {
           該当する商品がありません
         </p>
       ) : isMobile ? (
-        /* Mobile card view */
         <div className="space-y-2">
           {displayProducts.map((product) => (
-            <div
-              key={product.id}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-sm active:bg-muted/50"
-              onClick={() => navigate(`/product/${product.id}`)}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  {[product.computed_model_number !== "—" && product.computed_model_number, product.parent_category, product.color].filter(Boolean).join(" / ")}
-                </p>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-lg font-bold text-foreground">{product.stock}</p>
-                <p className="text-[10px] text-muted-foreground">在庫</p>
-              </div>
-              <Pencil className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            </div>
+            <InventoryMobileCard key={product.id} product={product} />
           ))}
         </div>
       ) : (
-        /* Desktop table view */
-        <div className="rounded-lg border border-border overflow-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
-          <Table className="text-xs" style={{ minWidth: 1200 }}>
-            <TableHeader className="sticky top-0 z-10">
-              <TableRow className="bg-muted">
-                <TableHead className="w-10 bg-muted" />
-                <SortableHead label="商品番号" sortField="product_number" className="min-w-[80px] text-center bg-muted" />
-                <TableHead className="whitespace-nowrap min-w-[100px] text-center bg-muted">商品型番</TableHead>
-                <SortableHead label="商品名" sortField="name" className="min-w-[120px] bg-muted" />
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center bg-muted">親カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[80px] text-center bg-muted">子カテゴリ</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[60px] text-center bg-muted">カラー</TableHead>
-                <SortableHead label="JANコード" sortField="barcode" className="min-w-[120px] bg-muted" />
-                <SortableHead label="在庫数" sortField="stock" className="min-w-[70px] text-center bg-muted" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayProducts.map((product) => (
-                <TableRow key={product.id} className="hover:bg-muted/50">
-                  <TableCell className="w-10 p-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/product/${product.id}`)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-center">{product.product_number || "—"}</TableCell>
-                  <TableCell className="whitespace-nowrap font-mono text-center">{product.computed_model_number}</TableCell>
-                  <TableCell className="whitespace-nowrap font-medium">{product.name}</TableCell>
-                  <TableCell className="whitespace-nowrap text-center">{product.parent_category || "—"}</TableCell>
-                  <TableCell className="whitespace-nowrap text-center">{product.sub_category || "—"}</TableCell>
-                  <TableCell className="whitespace-nowrap text-center">{product.color || "—"}</TableCell>
-                  <TableCell className="whitespace-nowrap font-mono">{product.barcode}</TableCell>
-                  <TableCell className="whitespace-nowrap text-center font-bold">{product.stock}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <InventoryDesktopTable
+          products={displayProducts}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          toggleSort={toggleSort}
+        />
       )}
     </div>
   );
