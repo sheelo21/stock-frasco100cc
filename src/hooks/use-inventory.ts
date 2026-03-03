@@ -40,11 +40,25 @@ export function useInventory() {
   const [loading, setLoading] = useState(true);
 
   const fetchProducts = useCallback(async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .order("name");
-    if (data) setProducts(data as Product[]);
+    const allProducts: Product[] = [];
+    const PAGE_SIZE = 1000;
+    let from = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .order("name")
+        .range(from, from + PAGE_SIZE - 1);
+      if (data && data.length > 0) {
+        allProducts.push(...(data as Product[]));
+        from += PAGE_SIZE;
+        hasMore = data.length === PAGE_SIZE;
+      } else {
+        hasMore = false;
+      }
+    }
+    setProducts(allProducts);
   }, []);
 
   const fetchLogs = useCallback(async () => {
