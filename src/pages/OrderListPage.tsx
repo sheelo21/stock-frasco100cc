@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Order {
@@ -13,6 +14,7 @@ interface Order {
   shipping_cost: number;
   total_amount: number;
   status: string;
+  doc_type: string;
   created_at: string;
 }
 
@@ -28,6 +30,7 @@ export default function OrderListPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<"all" | "発注書" | "納品書">("all");
 
   useEffect(() => {
     (async () => {
@@ -40,9 +43,19 @@ export default function OrderListPage() {
     })();
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(orders.length / ITEMS_PER_PAGE));
+  const filtered = useMemo(() => {
+    if (tab === "all") return orders;
+    return orders.filter((o) => o.doc_type === tab);
+  }, [orders, tab]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
-  const paged = orders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const paged = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const handleTabChange = (v: string) => {
+    setTab(v as any);
+    setPage(1);
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -51,17 +64,25 @@ export default function OrderListPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">発注履歴</h1>
-          <p className="text-sm text-muted-foreground">{orders.length}件</p>
+          <h1 className="text-2xl font-bold text-foreground">書類履歴</h1>
+          <p className="text-sm text-muted-foreground">{filtered.length}件</p>
         </div>
       </div>
+
+      <Tabs value={tab} onValueChange={handleTabChange}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">すべて</TabsTrigger>
+          <TabsTrigger value="発注書">発注書</TabsTrigger>
+          <TabsTrigger value="納品書">納品書</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      ) : orders.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">発注履歴がありません</p>
+      ) : filtered.length === 0 ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">履歴がありません</p>
       ) : (
         <>
           <div className="space-y-2">
@@ -82,10 +103,10 @@ export default function OrderListPage() {
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-bold text-foreground">¥{order.total_amount.toLocaleString()}</p>
                   <Badge
-                    variant={order.status === "納品済" ? "default" : "secondary"}
+                    variant={order.doc_type === "納品書" ? "default" : "secondary"}
                     className="text-[10px]"
                   >
-                    {order.status}
+                    {order.doc_type}
                   </Badge>
                 </div>
                 <div className="flex flex-col gap-1 flex-shrink-0">

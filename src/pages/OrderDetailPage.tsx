@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ interface Order {
   shipping_cost: number;
   total_amount: number;
   status: string;
+  doc_type: string;
 }
 
 interface OrderItem {
@@ -48,14 +48,12 @@ export default function OrderDetailPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [docType, setDocType] = useState<"発注書" | "納品書">("発注書");
 
   // Editable fields
   const [companyName, setCompanyName] = useState("");
   const [orderDate, setOrderDate] = useState("");
   const [discountRate, setDiscountRate] = useState("");
   const [shippingCost, setShippingCost] = useState("");
-  const [status, setStatus] = useState("");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -72,7 +70,6 @@ export default function OrderDetailPage() {
         setOrderDate(o.order_date);
         setDiscountRate(String(o.discount_rate));
         setShippingCost(String(o.shipping_cost));
-        setStatus(o.status);
       }
       if (itemsData) {
         setItems(itemsData as OrderItem[]);
@@ -82,6 +79,7 @@ export default function OrderDetailPage() {
     })();
   }, [id]);
 
+  const docType = order?.doc_type || "発注書";
   const rate = parseFloat(discountRate) || 0;
   const shipping = parseInt(shippingCost) || 0;
 
@@ -110,7 +108,6 @@ export default function OrderDetailPage() {
           discount_rate: parseFloat(discountRate),
           shipping_cost: shipping,
           total_amount: grandTotal,
-          status,
         })
         .eq("id", id);
       if (orderErr) throw orderErr;
@@ -150,7 +147,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="p-4 text-center">
-        <p className="text-muted-foreground">発注書が見つかりません</p>
+        <p className="text-muted-foreground">書類が見つかりません</p>
         <Button variant="outline" className="mt-4" onClick={() => navigate("/orders")}>戻る</Button>
       </div>
     );
@@ -165,26 +162,15 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold text-foreground flex-1">{docType}詳細</h1>
-          <div className="flex items-center gap-2">
-            <Select value={docType} onValueChange={(v) => setDocType(v as any)}>
-              <SelectTrigger className="h-9 w-28 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="発注書">発注書</SelectItem>
-                <SelectItem value="納品書">納品書</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-1" />
-              印刷
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-1" />
+            印刷
+          </Button>
         </div>
 
         {/* Editable info */}
         <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">会社名</label>
               <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
@@ -203,18 +189,6 @@ export default function OrderDetailPage() {
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">送料(税込)</label>
               <Input type="number" min="0" value={shippingCost} onChange={(e) => setShippingCost(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">ステータス</label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="h-10 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="発注済">発注済</SelectItem>
-                  <SelectItem value="納品済">納品済</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
@@ -278,10 +252,9 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Print view (hidden on screen, shown on print) */}
+      {/* Print view */}
       <div ref={printRef} className="hidden print:block print-area">
         <div className="p-8 font-sans text-sm" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
-          {/* Header */}
           <div className="flex justify-between items-start mb-8">
             <div>
               <h1 className="text-2xl font-bold mb-2">{docType}</h1>
@@ -293,7 +266,6 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Table */}
           <table className="w-full border-collapse text-xs mb-4">
             <thead>
               <tr className="border-b-2 border-foreground">

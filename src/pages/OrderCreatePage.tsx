@@ -33,10 +33,10 @@ export default function OrderCreatePage() {
   const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10));
   const [discountRate, setDiscountRate] = useState("0.6");
   const [shippingCost, setShippingCost] = useState("0");
+  const [docType, setDocType] = useState<"発注書" | "納品書">("発注書");
 
   useEffect(() => {
     (async () => {
-      // Fetch client users with discount_rate
       const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "client");
       if (!roles?.length) return;
       const clientIds = roles.map((r) => r.user_id);
@@ -106,7 +106,8 @@ export default function OrderCreatePage() {
           discount_rate: parseFloat(discountRate),
           shipping_cost: shipping,
           total_amount: grandTotal,
-          status: "発注済",
+          doc_type: docType,
+          status: docType === "発注書" ? "発注済" : "納品済",
         })
         .select()
         .single();
@@ -131,7 +132,7 @@ export default function OrderCreatePage() {
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
       if (itemsErr) throw itemsErr;
 
-      toast.success("発注書を保存しました");
+      toast.success(`${docType}を保存しました`);
       navigate("/orders");
     } catch (e) {
       toast.error("保存に失敗しました");
@@ -157,7 +158,7 @@ export default function OrderCreatePage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-foreground">発注書作成</h1>
+        <h1 className="text-2xl font-bold text-foreground">{docType}作成</h1>
       </div>
 
       {/* Basic info */}
@@ -179,7 +180,19 @@ export default function OrderCreatePage() {
             </Select>
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">書類種別</label>
+            <Select value={docType} onValueChange={(v) => setDocType(v as any)}>
+              <SelectTrigger className="h-10 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="発注書">発注書</SelectItem>
+                <SelectItem value="納品書">納品書</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">会社名</label>
             <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="株式会社〇〇" />
@@ -244,12 +257,10 @@ export default function OrderCreatePage() {
                 <TableCell className="text-right font-medium">¥{item.subtotal.toLocaleString()}</TableCell>
               </TableRow>
             ))}
-            {/* Shipping row */}
             <TableRow className="bg-muted/50">
               <TableCell colSpan={9} className="text-right font-medium">送料(税込)</TableCell>
               <TableCell className="text-right font-medium">¥{shipping.toLocaleString()}</TableCell>
             </TableRow>
-            {/* Grand total row */}
             <TableRow className="bg-muted font-bold">
               <TableCell colSpan={9} className="text-right text-sm">総計(税込)</TableCell>
               <TableCell className="text-right text-sm">¥{grandTotal.toLocaleString()}</TableCell>
@@ -260,7 +271,7 @@ export default function OrderCreatePage() {
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="min-w-[120px]">
-          {saving ? "保存中..." : "発注書を保存"}
+          {saving ? "保存中..." : `${docType}を保存`}
         </Button>
       </div>
     </div>
