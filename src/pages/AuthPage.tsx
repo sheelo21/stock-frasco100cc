@@ -29,6 +29,23 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 基本的な入力検証
+    if (!email || !password) {
+      toast.error("メールアドレスとパスワードを入力してください");
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast.error("パスワードは6文字以上必要です");
+      return;
+    }
+    
+    if (!email.includes('@') || !email.includes('.')) {
+      toast.error("有効なメールアドレスを入力してください");
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
@@ -37,6 +54,12 @@ export default function AuthPage() {
         if (error) throw error;
         toast.success("ログインしました");
       } else {
+        if (!displayName) {
+          toast.error("表示名を入力してください");
+          setSubmitting(false);
+          return;
+        }
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -48,8 +71,9 @@ export default function AuthPage() {
         if (error) throw error;
         toast.success("確認メールを送信しました。メールをご確認ください。");
       }
-    } catch (err: any) {
-      toast.error(err.message || "エラーが発生しました");
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      toast.error(error.message || "認証に失敗しました");
     } finally {
       setSubmitting(false);
     }
