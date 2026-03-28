@@ -230,3 +230,48 @@
     display: none !important;
   }
 }
+
+/* PWA and Mobile Improvements */
+@media (max-width: 640px) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
+  
+  /* Improved mobile navigation */
+  .fixed.bottom-0 {
+    background-color: hsl(var(--background));
+    backdrop-filter: blur(12px);
+    border-top: 1px solid hsl(var(--border));
+  }
+  
+  /* Better mobile spacing */
+  .p-4 {
+    padding: 1rem;
+  }
+  
+  /* Improved mobile cards */
+  .rounded-xl {
+    border-radius: 0.75rem;
+  }
+  
+  /* Better mobile tables */
+  .w-full {
+    font-size: 0.875rem;
+  }
+  
+  /* Mobile-friendly buttons */
+  .min-w-\[120px\] {
+    min-width: 100px;
+  }
+}
+
+/* PWA Standalone Mode */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}

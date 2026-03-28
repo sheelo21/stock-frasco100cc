@@ -11,6 +11,7 @@ interface Order {
   id: string;
   company_name: string;
   order_date: string;
+  order_number?: string;
   discount_rate: number;
   shipping_cost: number;
   total_amount: number;
@@ -268,6 +269,7 @@ export default function OrderDetailPage() {
           <div className="document-header">
             <div>
               <h1>{docType}</h1>
+              {order?.order_number && <p className="order-number">No. {order.order_number}</p>}
               <p className="client-info">{companyName} 御中</p>
             </div>
             <div className="document-meta">

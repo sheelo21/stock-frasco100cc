@@ -35,6 +35,18 @@ export default function OrderCreatePage() {
   const [discountRate, setDiscountRate] = useState("0.6");
   const [shippingCost, setShippingCost] = useState("0");
   const [docType, setDocType] = useState<"発注書" | "納品書">("発注書");
+  const [orderNumber, setOrderNumber] = useState("");
+
+  // Generate order number on component mount
+  useEffect(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const prefix = docType === "発注書" ? "PO" : "DL";
+    setOrderNumber(`${prefix}-${year}${month}${day}-${random}`);
+  }, [docType]);
 
   useEffect(() => {
     (async () => {
@@ -108,6 +120,7 @@ export default function OrderCreatePage() {
           user_id: user.id,
           company_name: companyName,
           order_date: orderDate,
+          order_number: orderNumber,
           discount_rate: parseFloat(discountRate),
           shipping_cost: shipping,
           total_amount: grandTotal,
@@ -302,6 +315,7 @@ export default function OrderCreatePage() {
         <div className="document-header">
           <div>
             <h1>{docType}</h1>
+            <p className="order-number">No. {orderNumber}</p>
             <p className="client-info">{companyName} 御中</p>
           </div>
           <div className="document-meta">
