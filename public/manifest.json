@@ -1,0 +1,26 @@
+{
+  "name": "フラスコ100cc 在庫管理システム",
+  "short_name": "在庫管理",
+  "description": "株式会社フラスコ100ccの在庫管理・発注システム",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "ja",
+  "scope": "/",
+  "prefer_related_applications": false
+}

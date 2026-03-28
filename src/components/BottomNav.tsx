@@ -1,14 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { Package, BoxesIcon, Settings, FileText } from "lucide-react";
+import { Package, BoxesIcon, Settings, FileText, BarChart3, Users } from "lucide-react";
 import { useUserRole } from "@/hooks/use-user-role";
 
 export default function BottomNav() {
   const { isClient } = useUserRole();
 
   const navItems = [
-    { to: "/", icon: Package, label: "商品一覧" },
+    { to: "/", icon: BarChart3, label: "ダッシュボード" },
+    { to: "/products", icon: Package, label: "商品一覧" },
     ...(!isClient ? [{ to: "/inventory", icon: BoxesIcon, label: "在庫一覧" }] : []),
-    ...(!isClient ? [{ to: "/orders", icon: FileText, label: "書類履歴" }] : []),
+    { to: "/orders", icon: FileText, label: "書類履歴" },
+    { to: "/customers", icon: Users, label: "顧客" },
     ...(!isClient ? [{ to: "/settings", icon: Settings, label: "設定" }] : []),
   ];
 

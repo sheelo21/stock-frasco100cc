@@ -19,6 +19,12 @@ import UserManagementPage from "@/pages/UserManagementPage";
 import OrderListPage from "@/pages/OrderListPage";
 import OrderCreatePage from "@/pages/OrderCreatePage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
+import DashboardPage from "@/pages/DashboardPage";
+import CustomerManagementPage from "@/pages/CustomerManagementPage";
+import DataExportPage from "@/pages/DataExportPage";
+import InventorySchedulePage from "@/pages/InventorySchedulePage";
+import OrderTemplatePage from "@/pages/OrderTemplatePage";
+import ReportsPage from "@/pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,8 +48,10 @@ function ProtectedRoutes() {
   return (
     <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
-        <Route path="/" element={<ProductListPage />} />
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/products" element={<ProductListPage />} />
         {!isClient && <Route path="/inventory" element={<InventoryListPage />} />}
+        {!isClient && <Route path="/inventory/schedule" element={<InventorySchedulePage />} />}
         {!isClient && <Route path="/products/add" element={<AddProductPage />} />}
         {!isClient && <Route path="/product/:id" element={<ProductPage />} />}
         {!isClient && <Route path="/scan" element={<ScanPage />} />}
@@ -51,6 +59,10 @@ function ProtectedRoutes() {
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/orders/create" element={<OrderCreatePage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
+        {!isClient && <Route path="/orders/templates" element={<OrderTemplatePage />} />}
+        <Route path="/customers" element={<CustomerManagementPage />} />
+        {!isClient && <Route path="/export" element={<DataExportPage />} />}
+        {!isClient && <Route path="/reports" element={<ReportsPage />} />}
         {!isClient && <Route path="/settings" element={<SettingsPage />} />}
         {!isClient && <Route path="/settings/users" element={<UserManagementPage />} />}
         {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}
