@@ -117,6 +117,7 @@
     background: white !important;
     color: black !important;
     font-size: 11px !important;
+    line-height: 1.4 !important;
   }
 
   .print\\:hidden {
@@ -132,6 +133,92 @@
     top: 0;
     left: 0;
     width: 100%;
+  }
+
+  /* Company information styling */
+  .print-area .company-info {
+    border-bottom: 2px solid black;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .print-area .company-info p {
+    margin: 2px 0;
+    font-size: 10px;
+  }
+
+  .print-area .company-info .company-name {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+
+  /* Document title and header styling */
+  .print-area h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    text-align: center;
+  }
+
+  .print-area .document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+
+  .print-area .client-info {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  .print-area .document-meta {
+    text-align: right;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  /* Table improvements */
+  .print-area table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+  }
+
+  .print-area th {
+    background-color: #f5f5f5 !important;
+    border: 1px solid black;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 9px;
+  }
+
+  .print-area td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+
+  .print-area .text-right {
+    text-align: right !important;
+  }
+
+  .print-area .text-center {
+    text-align: center !important;
+  }
+
+  /* Total row styling */
+  .print-area .total-row {
+    border-top: 2px solid black;
+    font-weight: bold;
+  }
+
+  .print-area .grand-total {
+    border-top: 2px solid black;
+    font-weight: bold;
+    font-size: 12px;
   }
 
   @page {

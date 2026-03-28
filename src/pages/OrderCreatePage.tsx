@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,6 +26,7 @@ export default function OrderCreatePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const selectedProducts: Product[] = location.state?.products || [];
+  const printRef = useRef<HTMLDivElement>(null);
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClient, setSelectedClient] = useState<string>("");
@@ -88,6 +89,10 @@ export default function OrderCreatePage() {
 
   const subtotalSum = items.reduce((s, i) => s + i.subtotal, 0);
   const grandTotal = subtotalSum + shipping;
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -153,12 +158,17 @@ export default function OrderCreatePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 pb-24">
+    <>
+    <div className="flex flex-col gap-4 p-4 pb-24 print:hidden">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-foreground">{docType}作成</h1>
+        <h1 className="text-2xl font-bold text-foreground flex-1">{docType}作成</h1>
+        <Button variant="outline" size="sm" onClick={handlePrint}>
+          <Printer className="h-4 w-4 mr-1" />
+          印刷
+        </Button>
       </div>
 
       {/* Basic info */}
@@ -275,5 +285,73 @@ export default function OrderCreatePage() {
         </Button>
       </div>
     </div>
+
+    {/* Print view */}
+    <div ref={printRef} className="hidden print:block print-area">
+      <div className="p-8 font-sans text-sm" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
+        {/* Company Information Header */}
+        <div className="company-info mb-6">
+          <div className="text-sm space-y-1">
+            <p className="company-name">株式会社フラスコ100cc</p>
+            <p>〒110-1105</p>
+            <p>東京都台東区東上野3-3-13 プラチナ第2ビル3階</p>
+            <p>03-6806-6531</p>
+          </div>
+        </div>
+
+        <div className="document-header">
+          <div>
+            <h1>{docType}</h1>
+            <p className="client-info">{companyName} 御中</p>
+          </div>
+          <div className="document-meta">
+            <p>発行日: {orderDate}</p>
+            <p>掛率: {rate > 0 ? formatRate(rate) : discountRate}</p>
+          </div>
+        </div>
+
+        <table className="w-full border-collapse text-xs mb-4">
+          <thead>
+            <tr className="border-b-2 border-foreground">
+              <th className="text-left py-1 px-1">商品型番</th>
+              <th className="text-left py-1 px-1">商品名</th>
+              <th className="text-left py-1 px-1">カラー</th>
+              <th className="text-left py-1 px-1">サイズ</th>
+              <th className="text-right py-1 px-1">上代(税込)</th>
+              <th className="text-right py-1 px-1">上代(税抜)</th>
+              <th className="text-right py-1 px-1">下代(税込)</th>
+              <th className="text-right py-1 px-1">下代(税抜)</th>
+              <th className="text-center py-1 px-1">数量</th>
+              <th className="text-right py-1 px-1">小計(税込)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.product.id} className="border-b border-gray-300">
+                <td className="py-1 px-1">{item.product.model_number || "—"}</td>
+                <td className="py-1 px-1">{item.product.name}</td>
+                <td className="py-1 px-1">{item.product.color || "—"}</td>
+                <td className="py-1 px-1">{item.product.size || "—"}</td>
+                <td className="text-right py-1 px-1">¥{item.priceWithTax.toLocaleString()}</td>
+                <td className="text-right py-1 px-1">¥{item.priceWithoutTax.toLocaleString()}</td>
+                <td className="text-right py-1 px-1">¥{item.discountedWithTax.toLocaleString()}</td>
+                <td className="text-right py-1 px-1">¥{item.discountedWithoutTax.toLocaleString()}</td>
+                <td className="text-center py-1 px-1">{item.qty}</td>
+                <td className="text-right py-1 px-1">¥{item.subtotal.toLocaleString()}</td>
+              </tr>
+            ))}
+            <tr className="total-row">
+              <td colSpan={9} className="text-right py-1 px-1 font-medium">送料(税込)</td>
+              <td className="text-right py-1 px-1 font-medium">¥{shipping.toLocaleString()}</td>
+            </tr>
+            <tr className="grand-total">
+              <td colSpan={9} className="text-right py-2 px-1">総計(税込)</td>
+              <td className="text-right py-2 px-1">¥{grandTotal.toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </>
   );
 }

@@ -255,12 +255,22 @@ export default function OrderDetailPage() {
       {/* Print view */}
       <div ref={printRef} className="hidden print:block print-area">
         <div className="p-8 font-sans text-sm" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">{docType}</h1>
-              <p className="text-base">{companyName} 御中</p>
+          {/* Company Information Header */}
+          <div className="company-info mb-6">
+            <div className="text-sm space-y-1">
+              <p className="company-name">株式会社フラスコ100cc</p>
+              <p>〒110-1105</p>
+              <p>東京都台東区東上野3-3-13 プラチナ第2ビル3階</p>
+              <p>03-6806-6531</p>
             </div>
-            <div className="text-right text-sm">
+          </div>
+
+          <div className="document-header">
+            <div>
+              <h1>{docType}</h1>
+              <p className="client-info">{companyName} 御中</p>
+            </div>
+            <div className="document-meta">
               <p>発行日: {orderDate}</p>
               <p>掛率: {rate > 0 ? formatRate(rate) : discountRate}</p>
             </div>
@@ -296,13 +306,13 @@ export default function OrderDetailPage() {
                   <td className="text-right py-1 px-1">¥{item.subtotal.toLocaleString()}</td>
                 </tr>
               ))}
-              <tr className="border-t border-gray-400">
+              <tr className="total-row">
                 <td colSpan={9} className="text-right py-1 px-1 font-medium">送料(税込)</td>
                 <td className="text-right py-1 px-1 font-medium">¥{shipping.toLocaleString()}</td>
               </tr>
-              <tr className="border-t-2 border-foreground font-bold">
-                <td colSpan={9} className="text-right py-2 px-1 text-base">総計(税込)</td>
-                <td className="text-right py-2 px-1 text-base">¥{grandTotal.toLocaleString()}</td>
+              <tr className="grand-total">
+                <td colSpan={9} className="text-right py-2 px-1">総計(税込)</td>
+                <td className="text-right py-2 px-1">¥{grandTotal.toLocaleString()}</td>
               </tr>
             </tbody>
           </table>
