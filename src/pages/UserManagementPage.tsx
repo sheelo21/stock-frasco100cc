@@ -405,12 +405,12 @@ export default function UserManagementPage() {
                   全{filteredUsers.length}件中 {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)}件を表示
                 </div>
                 {currentUsers.map((u) => (
-                <div
-                  key={u.user_id}
-                  className={`flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm ${
-                    u.user_id === currentUser?.id ? "border-primary/20 bg-primary/5" : "border-border"
-                  }`}
-                >
+                  <div
+                    key={u.user_id}
+                    className={`flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm ${
+                      u.user_id === currentUser?.id ? "border-primary/20 bg-primary/5" : "border-border"
+                    }`}
+                  >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     <Shield className="h-5 w-5 text-primary" />
                   </div>
