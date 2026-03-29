@@ -64,7 +64,6 @@ function ProtectedRoutes() {
         {!isClient && <Route path="/settings" element={<SettingsPage />} />}
         {!isClient && <Route path="/settings/dashboard" element={<DashboardPage />} />}
         {!isClient && <Route path="/settings/users" element={<UserManagementPage />} />}
-        <Route path="/setup" element={<SetupPage />} />
         {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -82,6 +81,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/setup" element={<SetupPage />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </AuthProvider>
