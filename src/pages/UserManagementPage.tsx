@@ -454,7 +454,6 @@ export default function UserManagementPage() {
                   )}
                 </div>
               ))}
-              )}
               {/* ページネーション */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-4 pt-4 border-t">
