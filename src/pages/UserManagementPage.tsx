@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Plus, Search, Edit, Save, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Shield, Users, Plus, Search, Edit, Save, X, ChevronLeft, ChevronRight, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -333,6 +333,41 @@ export default function UserManagementPage() {
     setNewMemo("");
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("本当にこのユーザーを削除しますか？この操作は元に戻せません。")) {
+      return;
+    }
+
+    try {
+      // プロフィールを削除
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (profileError) throw profileError;
+
+      // ユーザーロールを削除
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+
+      if (roleError) throw roleError;
+
+      // 認証ユーザーを削除（管理者権限が必要）
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+
+      if (authError) throw authError;
+
+      toast.success("ユーザーを削除しました");
+      await fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("ユーザーの削除に失敗しました");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-4 pb-20">
@@ -443,14 +478,26 @@ export default function UserManagementPage() {
                     </div>
                   </div>
                   {(isAdmin || u.user_id === currentUser?.id) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditUser(u)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditUser(u)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      {isAdmin && u.user_id !== currentUser?.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteUser(u.user_id)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
