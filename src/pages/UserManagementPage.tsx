@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Plus } from "lucide-react";
+import { ArrowLeft, Shield, Users, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,7 @@ export default function UserManagementPage() {
   const navigate = useNavigate();
   const { isAdmin } = useUserRole();
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -62,11 +63,54 @@ export default function UserManagementPage() {
   const [newRole, setNewRole] = useState<AppRole>("client");
   const [newDiscountRate, setNewDiscountRate] = useState("");
   const [creating, setCreating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "role" | "discount">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     if (!isAdmin) return;
     fetchUsers();
   }, [isAdmin]);
+
+  useEffect(() => {
+    let filtered = users;
+
+    // 検索フィルター
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (u) =>
+          (u.display_name && u.display_name.toLowerCase().includes(query)) ||
+          u.email.toLowerCase().includes(query)
+      );
+    }
+
+    // 並び替え
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case "name":
+          const nameA = (a.display_name || a.email).toLowerCase();
+          const nameB = (b.display_name || b.email).toLowerCase();
+          comparison = nameA.localeCompare(nameB);
+          break;
+        case "role":
+          const roleOrder: Record<AppRole, number> = { admin: 0, user: 1, client: 2 };
+          comparison = roleOrder[a.role] - roleOrder[b.role];
+          break;
+        case "discount":
+          const discountA = a.discount_rate ?? 1;
+          const discountB = b.discount_rate ?? 1;
+          comparison = discountA - discountB;
+          break;
+      }
+      
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    setFilteredUsers(filtered);
+  }, [users, searchQuery, sortBy, sortOrder]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -102,6 +146,7 @@ export default function UserManagementPage() {
     merged.sort((a, b) => order[a.role] - order[b.role]);
 
     setUsers(merged);
+    setFilteredUsers(merged);
     setLoading(false);
   };
 
@@ -234,13 +279,54 @@ export default function UserManagementPage() {
         </div>
       </div>
 
+      {/* 検索・並び替え */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="名前やメールアドレスで検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "role" | "discount")}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">名前</SelectItem>
+              <SelectItem value="role">権限</SelectItem>
+              <SelectItem value="discount">掛率</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "asc" | "desc")}>
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="asc">昇順</SelectItem>
+              <SelectItem value="desc">降順</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       ) : (
         <div className="space-y-2">
-          {users.map((u) => (
+          {filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>ユーザーが見つかりません</p>
+              {searchQuery && <p className="text-sm">検索条件を変えてみてください</p>}
+            </div>
+          ) : (
+            filteredUsers.map((u) => (
             <div
               key={u.user_id}
               className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
@@ -292,7 +378,8 @@ export default function UserManagementPage() {
                 </Select>
               </div>
             </div>
-          ))}
+          ))
+          )}
         </div>
       )}
 

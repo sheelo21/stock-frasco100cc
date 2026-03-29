@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Tag, Palette, Layers, Ruler, LogOut, Shield, Users } from "lucide-react";
+import { ChevronRight, Tag, Palette, Layers, Ruler, LogOut, Shield, Users, BarChart3 } from "lucide-react";
 import { OPTION_TYPES, type OptionType } from "@/hooks/use-dropdown-options";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,7 +22,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { role, isAdmin } = useUserRole();
+  const { role, isAdmin, isClient } = useUserRole();
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
@@ -54,6 +54,25 @@ export default function SettingsPage() {
       <p className="text-sm text-muted-foreground">
         商品登録時のプルダウン選択肢を管理します。
       </p>
+
+      {/* Dashboard - admin and user only */}
+      {!isClient && (
+        <button
+          onClick={() => navigate("/settings/dashboard")}
+          className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm hover:bg-muted/50 active:bg-muted transition-colors text-left"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">ダッシュボード</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              売上や在庫の概要を確認
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </button>
+      )}
 
       {/* User management - admin only */}
       {isAdmin && (

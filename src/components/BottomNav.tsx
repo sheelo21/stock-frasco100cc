@@ -6,11 +6,9 @@ export default function BottomNav() {
   const { isClient } = useUserRole();
 
   const navItems = [
-    { to: "/", icon: BarChart3, label: "ダッシュボード" },
-    { to: "/products", icon: Package, label: "商品一覧" },
+    { to: "/", icon: Package, label: "商品一覧" },
     ...(!isClient ? [{ to: "/inventory", icon: BoxesIcon, label: "在庫一覧" }] : []),
     { to: "/orders", icon: FileText, label: "書類履歴" },
-    { to: "/customers", icon: Users, label: "顧客" },
     ...(!isClient ? [{ to: "/settings", icon: Settings, label: "設定" }] : []),
   ];
 

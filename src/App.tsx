@@ -48,7 +48,7 @@ function ProtectedRoutes() {
   return (
     <div className="mx-auto min-h-screen max-w-7xl bg-background">
       <Routes>
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<ProductListPage />} />
         <Route path="/products" element={<ProductListPage />} />
         {!isClient && <Route path="/inventory" element={<InventoryListPage />} />}
         {!isClient && <Route path="/inventory/schedule" element={<InventorySchedulePage />} />}
@@ -60,10 +60,10 @@ function ProtectedRoutes() {
         <Route path="/orders/create" element={<OrderCreatePage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
         {!isClient && <Route path="/orders/templates" element={<OrderTemplatePage />} />}
-        <Route path="/customers" element={<CustomerManagementPage />} />
         {!isClient && <Route path="/export" element={<DataExportPage />} />}
         {!isClient && <Route path="/reports" element={<ReportsPage />} />}
         {!isClient && <Route path="/settings" element={<SettingsPage />} />}
+        {!isClient && <Route path="/settings/dashboard" element={<DashboardPage />} />}
         {!isClient && <Route path="/settings/users" element={<UserManagementPage />} />}
         {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}
         <Route path="*" element={<NotFound />} />
