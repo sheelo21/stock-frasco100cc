@@ -72,85 +72,98 @@ export default function OrderListPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const { data: ordersData, error: ordersError } = await supabase
-          .from("orders")
-          .select(`
-            *,
-            order_documents(
-              id,
-              doc_type,
-              doc_number,
-              issue_date,
-              status,
-              created_at
-            )
-          `)
-          .order("created_at", { ascending: false });
+  const fetchOrders = async () => {
+    try {
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-        if (ordersError) throw ordersError;
+      if (ordersError) throw ordersError;
+      
+      const ordersWithDocuments = (ordersData || []).map(order => {
+        const documents = [];
         
-        const ordersWithDocuments = (ordersData || []).map(order => ({
+        // 発注書情報がある場合は追加
+        if (order.発注書_number) {
+          documents.push({
+            id: `doc-${order.id}-発注書`,
+            order_id: order.id,
+            doc_type: "発注書" as const,
+            doc_number: order.発注書_number,
+            issue_date: order.発注書_date,
+            status: order.発注書_status || "発行済",
+            created_at: order.created_at
+          });
+        }
+        
+        // 納品書情報がある場合は追加
+        if (order.納品書_number) {
+          documents.push({
+            id: `doc-${order.id}-納品書`,
+            order_id: order.id,
+            doc_type: "納品書" as const,
+            doc_number: order.納品書_number,
+            issue_date: order.納品書_date,
+            status: order.納品書_status || "発行済",
+            created_at: order.created_at
+          });
+        }
+        
+        // 見積書情報がある場合は追加
+        if (order.見積書_number) {
+          documents.push({
+            id: `doc-${order.id}-見積書`,
+            order_id: order.id,
+            doc_type: "見積書" as const,
+            doc_number: order.見積書_number,
+            issue_date: order.見積書_date,
+            status: order.見積書_status || "発行済",
+            created_at: order.created_at
+          });
+        }
+        
+        return {
           ...order,
           order_id: `ORD-${String(order.id).padStart(6, '0')}`,
-          documents: order.order_documents || []
-        }));
-        
-        setOrders(ordersWithDocuments);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-        toast.error("注文データの読み込みに失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    };
+          documents
+        };
+      });
+      
+      setOrders(ordersWithDocuments);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      toast.error("注文データの読み込みに失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchOrders();
   }, []);
 
   const createDocument = async (order: Order, docType: "発注書" | "納品書" | "見積書") => {
     try {
       const docNumber = `${docType}-${Date.now()}`;
+      
+      // ordersテーブルに直接ドキュメント情報を保存
+      const updateData: any = {};
+      updateData[`${docType.toLowerCase()}_number`] = docNumber;
+      updateData[`${docType.toLowerCase()}_date`] = new Date().toISOString().split('T')[0];
+      updateData[`${docType.toLowerCase()}_status`] = "発行済";
+      
       const { error } = await supabase
-        .from("order_documents")
-        .insert({
-          order_id: order.id,
-          doc_type: docType,
-          doc_number: docNumber,
-          issue_date: new Date().toISOString().split('T')[0],
-          status: "発行済"
-        });
+        .from("orders")
+        .update(updateData)
+        .eq("id", order.id);
 
       if (error) throw error;
       
       toast.success(`${docType}を作成しました`);
+      
       // データを再取得
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("orders")
-        .select(`
-          *,
-          order_documents(
-            id,
-            doc_type,
-            doc_number,
-            issue_date,
-            status,
-            created_at
-          )
-        `)
-        .order("created_at", { ascending: false });
-
-      if (ordersError) throw ordersError;
-      
-      const ordersWithDocuments = (ordersData || []).map(order => ({
-        ...order,
-        order_id: `ORD-${String(order.id).padStart(6, '0')}`,
-        documents: order.order_documents || []
-      }));
-      
-      setOrders(ordersWithDocuments);
+      await fetchOrders();
       setShowDocumentDialog(false);
     } catch (error) {
       console.error("Error creating document:", error);
