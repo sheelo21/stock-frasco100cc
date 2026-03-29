@@ -321,14 +321,6 @@ export default function OrderListPage() {
                 </div>
               ))}
             </div>
-                      onClick={() => navigate(`/orders/${order.id}`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
 
             {/* ページネーション */}
             {totalPages > 1 && (
