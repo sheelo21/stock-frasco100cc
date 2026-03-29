@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Copy, Package, ShoppingCart, Template } from "lucide-react";
+import { Plus, Edit, Trash2, Copy, Package, ShoppingCart, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -388,7 +388,7 @@ export default function OrderTemplatePage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {templates.length === 0 ? (
           <div className="col-span-full text-center py-12 text-muted-foreground">
-            <Template className="h-16 w-16 mx-auto mb-4 opacity-50" />
+            <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
             <p>テンプレートが登録されていません</p>
             <p className="text-sm">「テンプレート作成」ボタンから最初のテンプレートを作成してください</p>
           </div>
