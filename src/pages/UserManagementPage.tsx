@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Plus, Search, Edit, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, Shield, Users, Plus, Search, Edit, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { useUserRole, type AppRole } from "@/hooks/use-user-role";
 import { toast } from "sonner";
 
@@ -54,17 +55,17 @@ function formatRate(rate: number | null): string {
 
 export default function UserManagementPage() {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const { isAdmin } = useUserRole();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"name" | "role" | "discount">("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortBy, setSortBy] = useState<"name" | "role" | "created">("created");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   
   // 新規ユーザー用フォーム
@@ -84,9 +85,8 @@ export default function UserManagementPage() {
   });
 
   useEffect(() => {
-    if (!isAdmin) return;
     fetchUsers();
-  }, [isAdmin]);
+  }, []);
 
   useEffect(() => {
     let filtered = users;
@@ -115,10 +115,8 @@ export default function UserManagementPage() {
           const roleOrder: Record<AppRole, number> = { admin: 0, user: 1, client: 2 };
           comparison = roleOrder[a.role] - roleOrder[b.role];
           break;
-        case "discount":
-          const discountA = a.discount_rate ?? 1;
-          const discountB = b.discount_rate ?? 1;
-          comparison = discountA - discountB;
+        case "created":
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
       }
       
@@ -175,32 +173,26 @@ export default function UserManagementPage() {
   };
 
   const handleRoleChange = async (userId: string, roleRowId: string, newRole: AppRole) => {
-    setUpdatingId(userId);
+    try {
+      if (roleRowId) {
+        const { error } = await supabase
+          .from("user_roles")
+          .update({ role: newRole })
+          .eq("id", roleRowId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: newRole });
+        if (error) throw error;
+      }
 
-    if (roleRowId) {
-      const { error } = await supabase
-        .from("user_roles")
-        .update({ role: newRole })
-        .eq("id", roleRowId);
-      if (error) {
-        toast.error("権限の更新に失敗しました");
-        setUpdatingId(null);
-        return;
-      }
-    } else {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert({ user_id: userId, role: newRole });
-      if (error) {
-        toast.error("権限の設定に失敗しました");
-        setUpdatingId(null);
-        return;
-      }
+      toast.success("権限を更新しました");
+      await fetchUsers();
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast.error("権限の更新に失敗しました");
     }
-
-    toast.success("権限を更新しました");
-    setUpdatingId(null);
-    await fetchUsers();
   };
 
   const handleEditUser = (user: UserWithRole) => {
@@ -308,18 +300,6 @@ export default function UserManagementPage() {
     setNewMemo("");
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-semibold">アクセス権限がありません</p>
-          <p className="text-sm text-muted-foreground mt-2">このページは管理者のみアクセスできます</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-4 pb-20">
@@ -342,14 +322,14 @@ export default function UserManagementPage() {
             />
           </div>
           <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "role" | "discount")}>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "role" | "created")}>
               <SelectTrigger className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="created">作成日</SelectItem>
                 <SelectItem value="name">名前</SelectItem>
                 <SelectItem value="role">権限</SelectItem>
-                <SelectItem value="discount">掛率</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "asc" | "desc")}>
@@ -357,20 +337,22 @@ export default function UserManagementPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="asc">昇順</SelectItem>
-                <SelectItem value="desc">降順</SelectItem>
+                <SelectItem value="desc">新しい順</SelectItem>
+                <SelectItem value="asc">古い順</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {/* ユーザー追加ボタン */}
-        <div className="mb-4">
-          <Button onClick={() => setShowAddDialog(true)} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            ユーザー追加
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="mb-4">
+            <Button onClick={() => setShowAddDialog(true)} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              ユーザー追加
+            </Button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-16">
@@ -388,15 +370,24 @@ export default function UserManagementPage() {
               filteredUsers.map((u) => (
                 <div
                   key={u.user_id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+                  className={`flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm ${
+                    u.user_id === currentUser?.id ? "border-primary/20 bg-primary/5" : "border-border"
+                  }`}
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     <Shield className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {u.display_name || u.email}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {u.display_name || u.email}
+                      </p>
+                      {u.user_id === currentUser?.id && (
+                        <Badge variant="outline" className="text-[10px]">
+                          あなた
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className={`text-[10px] ${ROLE_COLORS[u.role]}`}>
@@ -414,14 +405,16 @@ export default function UserManagementPage() {
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditUser(u)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  {(isAdmin || u.user_id === currentUser?.id) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditUser(u)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))
             )}
@@ -429,69 +422,71 @@ export default function UserManagementPage() {
         )}
 
         {/* ユーザー追加ダイアログ */}
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>ユーザー追加</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">表示名</label>
-                <Input value={newDisplayName} onChange={(e) => setNewDisplayName(e.target.value)} placeholder="山田太郎" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">メールアドレス *</label>
-                <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="user@example.com" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">パスワード *</label>
-                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="6文字以上" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">権限</label>
-                <Select value={newRole} onValueChange={(v) => setNewRole(v as AppRole)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">管理者</SelectItem>
-                    <SelectItem value="user">利用者</SelectItem>
-                    <SelectItem value="client">顧客</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {newRole === "client" && (
+        {isAdmin && (
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>ユーザー追加</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">掛率（例: 0.6 = 6掛け）</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="1"
-                    value={newDiscountRate}
-                    onChange={(e) => setNewDiscountRate(e.target.value)}
-                    placeholder="0.6"
+                  <label className="text-xs text-muted-foreground">表示名</label>
+                  <Input value={newDisplayName} onChange={(e) => setNewDisplayName(e.target.value)} placeholder="山田太郎" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">メールアドレス *</label>
+                  <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="user@example.com" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">パスワード *</label>
+                  <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="6文字以上" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">権限</label>
+                  <Select value={newRole} onValueChange={(v) => setNewRole(v as AppRole)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">管理者</SelectItem>
+                      <SelectItem value="user">利用者</SelectItem>
+                      <SelectItem value="client">顧客</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {newRole === "client" && (
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">掛率（例: 0.6 = 6掛け）</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="1"
+                      value={newDiscountRate}
+                      onChange={(e) => setNewDiscountRate(e.target.value)}
+                      placeholder="0.6"
+                    />
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">メモ</label>
+                  <Textarea
+                    value={newMemo}
+                    onChange={(e) => setNewMemo(e.target.value)}
+                    placeholder="備考などを入力..."
+                    rows={3}
                   />
                 </div>
-              )}
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">メモ</label>
-                <Textarea
-                  value={newMemo}
-                  onChange={(e) => setNewMemo(e.target.value)}
-                  placeholder="備考などを入力..."
-                  rows={3}
-                />
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddDialog(false)}>キャンセル</Button>
-              <Button onClick={handleCreateUser} disabled={creating}>
-                {creating ? "作成中..." : "作成"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddDialog(false)}>キャンセル</Button>
+                <Button onClick={handleCreateUser} disabled={creating}>
+                  {creating ? "作成中..." : "作成"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* ユーザー編集ダイアログ */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -512,19 +507,21 @@ export default function UserManagementPage() {
                   placeholder="山田太郎"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">権限</label>
-                <Select value={editFormData.role} onValueChange={(v) => setEditFormData({...editFormData, role: v as AppRole})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">管理者</SelectItem>
-                    <SelectItem value="user">利用者</SelectItem>
-                    <SelectItem value="client">顧客</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {isAdmin && (
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground">権限</label>
+                  <Select value={editFormData.role} onValueChange={(v) => setEditFormData({...editFormData, role: v as AppRole})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">管理者</SelectItem>
+                      <SelectItem value="user">利用者</SelectItem>
+                      <SelectItem value="client">顧客</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               {editFormData.role === "client" && (
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground">掛率（例: 0.6 = 6掛け）</label>
