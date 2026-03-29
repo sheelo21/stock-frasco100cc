@@ -453,7 +453,7 @@ export default function UserManagementPage() {
                     </Button>
                   )}
                 </div>
-              ))
+              ))}
               )}
               {/* ページネーション */}
               {totalPages > 1 && (
