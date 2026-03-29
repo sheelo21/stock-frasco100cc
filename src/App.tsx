@@ -23,7 +23,6 @@ import DashboardPage from "@/pages/DashboardPage";
 import CustomerManagementPage from "@/pages/CustomerManagementPage";
 import DataExportPage from "@/pages/DataExportPage";
 import InventorySchedulePage from "@/pages/InventorySchedulePage";
-import OrderTemplatePage from "@/pages/OrderTemplatePage";
 import ReportsPage from "@/pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 
@@ -59,7 +58,6 @@ function ProtectedRoutes() {
         <Route path="/orders" element={<OrderListPage />} />
         <Route path="/orders/create" element={<OrderCreatePage />} />
         <Route path="/orders/:id" element={<OrderDetailPage />} />
-        {!isClient && <Route path="/orders/templates" element={<OrderTemplatePage />} />}
         {!isClient && <Route path="/export" element={<DataExportPage />} />}
         {!isClient && <Route path="/reports" element={<ReportsPage />} />}
         {!isClient && <Route path="/settings" element={<SettingsPage />} />}
