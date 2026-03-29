@@ -1,11 +1,14 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    toast.error("ページが見つかりません", {
+      description: `アクセスしようとしたパス: ${location.pathname}`,
+    });
   }, [location.pathname]);
 
   return (
