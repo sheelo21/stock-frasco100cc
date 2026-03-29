@@ -34,7 +34,7 @@ interface UserWithRole {
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: "管理者",
   user: "利用者",
-  client: "クライアント",
+  client: "顧客",
 };
 
 const ROLE_COLORS: Record<AppRole, string> = {
@@ -190,6 +190,19 @@ export default function UserManagementPage() {
       return;
     }
     toast.success("掛率を更新しました");
+    await fetchUsers();
+  };
+
+  const handleDisplayNameChange = async (userId: string, displayName: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ display_name: displayName.trim() || null })
+      .eq("user_id", userId);
+    if (error) {
+      toast.error("表示名の更新に失敗しました");
+      return;
+    }
+    toast.success("表示名を更新しました");
     await fetchUsers();
   };
 
@@ -350,6 +363,15 @@ export default function UserManagementPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* 表示名編集 */}
+                <Input
+                  type="text"
+                  placeholder="表示名"
+                  value={u.display_name || ""}
+                  onChange={(e) => handleDisplayNameChange(u.user_id, e.target.value)}
+                  className="h-9 w-[120px] text-xs"
+                />
+                
                 {u.role === "client" && (
                   <Input
                     type="number"
@@ -373,7 +395,7 @@ export default function UserManagementPage() {
                   <SelectContent className="bg-popover z-50">
                     <SelectItem value="admin">管理者</SelectItem>
                     <SelectItem value="user">利用者</SelectItem>
-                    <SelectItem value="client">クライアント</SelectItem>
+                    <SelectItem value="client">顧客</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -411,7 +433,7 @@ export default function UserManagementPage() {
                 <SelectContent>
                   <SelectItem value="admin">管理者</SelectItem>
                   <SelectItem value="user">利用者</SelectItem>
-                  <SelectItem value="client">クライアント</SelectItem>
+                  <SelectItem value="client">顧客</SelectItem>
                 </SelectContent>
               </Select>
             </div>
