@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Users, Plus, Search, Edit, Save, X } from "lucide-react";
+import { ArrowLeft, Shield, Users, Plus, Search, Edit, Save, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -68,6 +68,10 @@ export default function UserManagementPage() {
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [creating, setCreating] = useState(false);
   
+  // ページネーション用
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
+  
   // 新規ユーザー用フォーム
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -124,10 +128,22 @@ export default function UserManagementPage() {
     });
 
     setFilteredUsers(filtered);
+    setCurrentPage(1); // 検索・並び替え時に1ページ目に戻る
   }, [users, searchQuery, sortBy, sortOrder]);
+
+  // ページネーション計算
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   const fetchUsers = async () => {
     try {
+      // まず全ユーザーを取得
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) throw authError;
+
+      // profilesとuser_rolesをJOINして取得
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select(`
@@ -145,9 +161,7 @@ export default function UserManagementPage() {
 
       if (profilesError) throw profilesError;
 
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
-
+      // profilesに存在するユーザーをマージ
       const merged = (profiles || []).map((profile: any) => {
         const authUser = authUsers.users.find((u: any) => u.id === profile.user_id);
         return {
@@ -162,8 +176,27 @@ export default function UserManagementPage() {
         };
       });
 
-      setUsers(merged);
-      setFilteredUsers(merged);
+      // profilesに存在しないユーザーを追加（roleがない場合はclientとして扱う）
+      const existingUserIds = new Set(merged.map(u => u.user_id));
+      const missingUsers = authUsers.users
+        .filter((authUser: any) => !existingUserIds.has(authUser.id))
+        .map((authUser: any) => ({
+          user_id: authUser.id,
+          email: authUser.email || "",
+          display_name: null,
+          role: "client" as AppRole,
+          role_row_id: "",
+          discount_rate: null,
+          memo: null,
+          created_at: authUser.created_at,
+        }));
+
+      const allUsers = [...merged, ...missingUsers].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setUsers(allUsers);
+      setFilteredUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("ユーザー情報の読み込みに失敗しました");
@@ -367,7 +400,11 @@ export default function UserManagementPage() {
                 {searchQuery && <p className="text-sm">検索条件を変えてみてください</p>}
               </div>
             ) : (
-              filteredUsers.map((u) => (
+              <>
+                <div className="text-sm text-muted-foreground mb-2">
+                  全{filteredUsers.length}件中 {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)}件を表示
+                </div>
+                {currentUsers.map((u) => (
                 <div
                   key={u.user_id}
                   className={`flex items-center gap-3 rounded-xl border bg-card p-4 shadow-sm ${
@@ -417,6 +454,32 @@ export default function UserManagementPage() {
                   )}
                 </div>
               ))
+              )}
+              {/* ページネーション */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-4 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              </>
             )}
           </div>
         )}
