@@ -24,6 +24,7 @@ import CustomerManagementPage from "@/pages/CustomerManagementPage";
 import DataExportPage from "@/pages/DataExportPage";
 import InventorySchedulePage from "@/pages/InventorySchedulePage";
 import ReportsPage from "@/pages/ReportsPage";
+import SetupPage from "@/pages/SetupPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,7 +64,8 @@ function ProtectedRoutes() {
         {!isClient && <Route path="/settings" element={<SettingsPage />} />}
         {!isClient && <Route path="/settings/dashboard" element={<DashboardPage />} />}
         {!isClient && <Route path="/settings/users" element={<UserManagementPage />} />}
-        {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}
+        <Route path="/setup" element={<SetupPage />} />
+        {!isClient && <Route path="/settings/:type" element={<SettingsDetailPage />} />}}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNav />
